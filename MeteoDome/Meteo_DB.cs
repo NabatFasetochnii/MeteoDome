@@ -11,7 +11,7 @@ namespace MeteoDome
 
         ////globals
         public string services_conn_string =
-            "";
+            "Server=192.168.240.26;Port=5432;User Id=services;Password=services; Database=services;";
 
         private static double UT2JD(DateTime UT)
         {

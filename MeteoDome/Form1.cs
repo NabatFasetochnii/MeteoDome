@@ -32,7 +32,7 @@ namespace MeteoDome
         private readonly SerialDevices _serialDevices = new SerialDevices();
         private int _counter;
         private bool _isDomeOpen;
-        private bool _isObsRun;
+        private bool _isObsCanRun;
         private bool _isObsRunning;
         private bool _isShutterNorthOpen;
         private bool _isShutterSouthOpen;
@@ -69,7 +69,7 @@ namespace MeteoDome
             // DomeTimer.Start();
 
             // var getMeteoThread = new Thread(GetMeteo);
-            // getMeteoThread.Start();
+            // getMeteoThread.Start();  
             var socketThread = new Thread(socket_manager);
             socketThread.Start();
         }
@@ -84,8 +84,8 @@ namespace MeteoDome
         {
             var getMeteoThread = new Thread(GetMeteo);
             var getDomeThread = new Thread(GetDome);
-            getMeteoThread.Start();
             getDomeThread.Start();
+            getMeteoThread.Start();
         }
 
         private void GetMeteo()
@@ -98,7 +98,7 @@ namespace MeteoDome
             _wind = _meteo.Get_Wind(); // return wind, -1 - disconnected, 100 - old data
             _sunZd = _meteo.Sun_ZD(); //return Sun zenith distance (degree)
             if ((_skyVis[0] > 0) & (_skyVis[1] > 0))
-                _isObsRun = Meteo_DB.Get_Weather_Obs(_isObsRun, _skyVis[0], _skyVis[1]);
+                _isObsCanRun = Meteo_DB.Get_Weather_Obs(_isObsCanRun, _skyVis[0], _skyVis[1]);
             if ((_skyIr[0] < -1) & (_skyIr[1] > 0) & (-1 < _wind) & (_wind < 100))
                 _isDomeOpen =
                     Meteo_DB.Get_Weather_Dome(_isShutterNorthOpen & _isShutterSouthOpen, _skyIr[0], _skyIr[1], _wind);
@@ -285,8 +285,8 @@ namespace MeteoDome
                     weather_label.ForeColor = Color.Green;
                     break;
             }
-            label_Obs_cond.ForeColor = _isObsRun & _isShutterNorthOpen & _isShutterSouthOpen ? Color.Green : Color.Red;
-            label_Obs_cond.Text = _isObsRun & _isShutterNorthOpen & _isShutterSouthOpen
+            label_Obs_cond.ForeColor = _isObsCanRun & _isShutterNorthOpen & _isShutterSouthOpen ? Color.Green : Color.Red;
+            label_Obs_cond.Text = _isObsCanRun & _isShutterNorthOpen & _isShutterSouthOpen
                 ? "Observation conditions: Run"
                 : "Observation conditions: Stop";
         }
@@ -296,7 +296,7 @@ namespace MeteoDome
             if (_isDomeOpen)
             {
                 open_dome();
-                if (_isObsRun) weather_choice();
+                if (_isObsCanRun) weather_choice();
             }
             else
             {
@@ -599,7 +599,7 @@ namespace MeteoDome
             if (_isObsRunning) return;
             logger.AddLogEntry("Observation start");
             open_dome();
-            _isObsRun = true;
+            _isObsRunning = true;
         }
 
         private void start_flat()
