@@ -3,27 +3,26 @@ using System.Collections;
 using System.IO.Ports;
 using System.Linq;
 using System.Timers;
-using Timer = System.Timers.Timer;
 
 namespace MeteoDome
 {
     public class SerialDevices
     {
         private static readonly Timer ComTimer = new Timer(); //timer for Serial port communication delay
-        public bool TransmissionEnabled;
         private readonly SerialPort _serialPort = new SerialPort();
+        public BitArray buttons = new BitArray(8, false);
 
         //serial port
         public string ComId;
         public BitArray Dome = new BitArray(8, false);
-        public BitArray Power = new BitArray(8, false);
-        public BitArray buttons = new BitArray(8, false);
-        public BitArray timeout = new BitArray(8, false);
-        public Logger Logger;
         public int initflag;
+        public Logger Logger;
+        public BitArray Power = new BitArray(8, false);
+        public BitArray timeout = new BitArray(8, false);
         public int timeout_north = 120;
         public int timeout_south = 120;
-    
+        public bool TransmissionEnabled;
+
         //protected virtual void Dispose(bool disposing)
         //{
         //    if (disposing)
@@ -50,7 +49,7 @@ namespace MeteoDome
 
         private void Open_Port()
         {
-            _serialPort.PortName = "COM"+ComId;
+            _serialPort.PortName = "COM" + ComId;
             _serialPort.BaudRate = 9600;
             _serialPort.DataBits = 8;
             try
@@ -92,11 +91,11 @@ namespace MeteoDome
         {
             if (!_serialPort.IsOpen || !TransmissionEnabled) return;
             // Logger.AddLogEntry("send msg: " + command);
-            if (command[1] == 'r' || command[1]== 's') //if run command
+            if (command[1] == 'r' || command[1] == 's') //if run command
             {
                 TransmissionEnabled = false;
                 _serialPort.WriteLine(command);
-                TransmissionEnabled = true; 
+                TransmissionEnabled = true;
             }
 
             if (command[1] == 'g') //if question
@@ -145,13 +144,13 @@ namespace MeteoDome
                 {
                     case "aca": //Motors*16 + end switches
                         // запрос состояния моторов и концевиков   //  1gca;   //  1aca=[byte];    //  возвращает байт nc no sc so nc no sc so (Motors*16 + Switches)
-                        Dome = bits;   
+                        Dome = bits;
                         Logger.AddLogEntry("Dome");
                         break;
                     case "acp": //power
                         // запрос состояния питания моторов//1gcp;//1acp=[byte];//возвращает байт u  u  u  u  u  pn ps ee
                         Power = bits;
-                       
+
                         // if (Power[5] & Power[6])
                         // {
                         //     msg = "Оба мотора запитаны";
@@ -192,7 +191,7 @@ namespace MeteoDome
                 }
             }
             catch (Exception exception)
-            {   
+            {
                 Logger.AddLogEntry("Can't read the dome answer " + indata);
                 // Logger.AddLogEntry(exception.Message);
             }
