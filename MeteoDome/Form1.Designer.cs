@@ -44,6 +44,7 @@
             this.label_SkyTemp = new System.Windows.Forms.Label();
             this.label_Dome_Cond = new System.Windows.Forms.Label();
             this.groupBox_Dome = new System.Windows.Forms.GroupBox();
+            this.checkBox_initflag = new System.Windows.Forms.CheckBox();
             this.numericUpDown_timeout_south = new System.Windows.Forms.NumericUpDown();
             this.numericUpDown_timeout_north = new System.Windows.Forms.NumericUpDown();
             this.label_timeout_south = new System.Windows.Forms.Label();
@@ -52,7 +53,6 @@
             this.label_butt_north = new System.Windows.Forms.Label();
             this.checkBoxSouth = new System.Windows.Forms.CheckBox();
             this.checkBoxNorth = new System.Windows.Forms.CheckBox();
-            this.park_button = new System.Windows.Forms.Button();
             this.label_Shutter_South = new System.Windows.Forms.Label();
             this.label_Shutter_North = new System.Windows.Forms.Label();
             this.label_Motor_North = new System.Windows.Forms.Label();
@@ -65,7 +65,6 @@
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.logBox = new System.Windows.Forms.ListBox();
-            this.checkBox_initflag = new System.Windows.Forms.CheckBox();
             this.groupBox_Meteo.SuspendLayout();
             this.groupBox_Dome.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_timeout_south)).BeginInit();
@@ -91,7 +90,7 @@
             this.groupBox_Meteo.Margin = new System.Windows.Forms.Padding(1);
             this.groupBox_Meteo.Name = "groupBox_Meteo";
             this.groupBox_Meteo.Padding = new System.Windows.Forms.Padding(1);
-            this.groupBox_Meteo.Size = new System.Drawing.Size(477, 329);
+            this.groupBox_Meteo.Size = new System.Drawing.Size(477, 301);
             this.groupBox_Meteo.TabIndex = 0;
             this.groupBox_Meteo.TabStop = false;
             this.groupBox_Meteo.Text = "Meteo";
@@ -248,7 +247,6 @@
             this.groupBox_Dome.Controls.Add(this.label_butt_north);
             this.groupBox_Dome.Controls.Add(this.checkBoxSouth);
             this.groupBox_Dome.Controls.Add(this.checkBoxNorth);
-            this.groupBox_Dome.Controls.Add(this.park_button);
             this.groupBox_Dome.Controls.Add(this.label_Shutter_South);
             this.groupBox_Dome.Controls.Add(this.label_Shutter_North);
             this.groupBox_Dome.Controls.Add(this.label_Motor_North);
@@ -263,10 +261,21 @@
             this.groupBox_Dome.Margin = new System.Windows.Forms.Padding(1);
             this.groupBox_Dome.Name = "groupBox_Dome";
             this.groupBox_Dome.Padding = new System.Windows.Forms.Padding(1);
-            this.groupBox_Dome.Size = new System.Drawing.Size(398, 329);
+            this.groupBox_Dome.Size = new System.Drawing.Size(398, 301);
             this.groupBox_Dome.TabIndex = 1;
             this.groupBox_Dome.TabStop = false;
             this.groupBox_Dome.Text = "Dome";
+            // 
+            // checkBox_initflag
+            // 
+            this.checkBox_initflag.AutoSize = true;
+            this.checkBox_initflag.Enabled = false;
+            this.checkBox_initflag.Location = new System.Drawing.Point(6, 246);
+            this.checkBox_initflag.Name = "checkBox_initflag";
+            this.checkBox_initflag.Size = new System.Drawing.Size(68, 21);
+            this.checkBox_initflag.TabIndex = 21;
+            this.checkBox_initflag.Text = "Initflag";
+            this.checkBox_initflag.UseVisualStyleBackColor = true;
             // 
             // numericUpDown_timeout_south
             // 
@@ -353,16 +362,6 @@
             this.checkBoxNorth.TabIndex = 9;
             this.checkBoxNorth.Text = "North";
             this.checkBoxNorth.UseVisualStyleBackColor = true;
-            // 
-            // park_button
-            // 
-            this.park_button.Location = new System.Drawing.Point(209, 101);
-            this.park_button.Name = "park_button";
-            this.park_button.Size = new System.Drawing.Size(142, 25);
-            this.park_button.TabIndex = 8;
-            this.park_button.Text = "Park";
-            this.park_button.UseVisualStyleBackColor = true;
-            this.park_button.Click += new System.EventHandler(this.park_button_Click);
             // 
             // label_Shutter_South
             // 
@@ -462,7 +461,7 @@
             // 
             this.label_Time.AutoSize = true;
             this.label_Time.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label_Time.Location = new System.Drawing.Point(10, 335);
+            this.label_Time.Location = new System.Drawing.Point(8, 307);
             this.label_Time.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
             this.label_Time.Name = "label_Time";
             this.label_Time.Size = new System.Drawing.Size(39, 17);
@@ -485,27 +484,16 @@
             this.logBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.logBox.FormattingEnabled = true;
             this.logBox.ItemHeight = 20;
-            this.logBox.Location = new System.Drawing.Point(5, 369);
+            this.logBox.Location = new System.Drawing.Point(5, 329);
             this.logBox.Name = "logBox";
-            this.logBox.Size = new System.Drawing.Size(669, 144);
+            this.logBox.Size = new System.Drawing.Size(875, 184);
             this.logBox.TabIndex = 3;
-            // 
-            // checkBox_initflag
-            // 
-            this.checkBox_initflag.AutoSize = true;
-            this.checkBox_initflag.Enabled = false;
-            this.checkBox_initflag.Location = new System.Drawing.Point(6, 246);
-            this.checkBox_initflag.Name = "checkBox_initflag";
-            this.checkBox_initflag.Size = new System.Drawing.Size(68, 21);
-            this.checkBox_initflag.TabIndex = 21;
-            this.checkBox_initflag.Text = "Initflag";
-            this.checkBox_initflag.UseVisualStyleBackColor = true;
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(892, 528);
+            this.ClientSize = new System.Drawing.Size(886, 517);
             this.Controls.Add(this.logBox);
             this.Controls.Add(this.label_Time);
             this.Controls.Add(this.groupBox_Dome);
@@ -550,7 +538,6 @@
         private System.Windows.Forms.Label label_Motor_North;
         private System.Windows.Forms.Label label_Motor_South;
         private System.Windows.Forms.Label label_Dome_Power;
-        private System.Windows.Forms.Button park_button;
         private System.Windows.Forms.NotifyIcon notifyIcon1;
         private System.Windows.Forms.Button update_data_button;
         private System.Windows.Forms.Label last_data_update_label;
