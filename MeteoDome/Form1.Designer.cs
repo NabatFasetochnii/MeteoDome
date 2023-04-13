@@ -23,8 +23,8 @@
         #region Код, автоматически созданный конструктором форм Windows
 
         /// <summary>
-        /// Требуемый метод для поддержки конструктора — не изменяйте 
-        /// содержимое этого метода с помощью редактора кода.
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent()
         {
@@ -65,14 +65,16 @@
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.logBox = new System.Windows.Forms.ListBox();
+            this.button_disconnect = new System.Windows.Forms.Button();
             this.groupBox_Meteo.SuspendLayout();
             this.groupBox_Dome.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_timeout_south)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_timeout_north)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize) (this.numericUpDown_timeout_south)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize) (this.numericUpDown_timeout_north)).BeginInit();
             this.SuspendLayout();
             // 
             // groupBox_Meteo
             // 
+            this.groupBox_Meteo.Controls.Add(this.button_disconnect);
             this.groupBox_Meteo.Controls.Add(this.weather_label);
             this.groupBox_Meteo.Controls.Add(this.update_data_button);
             this.groupBox_Meteo.Controls.Add(this.last_data_update_label);
@@ -85,7 +87,7 @@
             this.groupBox_Meteo.Controls.Add(this.label_Seeing_ext);
             this.groupBox_Meteo.Controls.Add(this.label_SkyTempSTD);
             this.groupBox_Meteo.Controls.Add(this.label_SkyTemp);
-            this.groupBox_Meteo.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.groupBox_Meteo.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.groupBox_Meteo.Location = new System.Drawing.Point(5, 5);
             this.groupBox_Meteo.Margin = new System.Windows.Forms.Padding(1);
             this.groupBox_Meteo.Name = "groupBox_Meteo";
@@ -98,7 +100,7 @@
             // weather_label
             // 
             this.weather_label.AutoSize = true;
-            this.weather_label.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.weather_label.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.weather_label.Location = new System.Drawing.Point(5, 253);
             this.weather_label.Name = "weather_label";
             this.weather_label.Size = new System.Drawing.Size(76, 17);
@@ -107,7 +109,7 @@
             // 
             // update_data_button
             // 
-            this.update_data_button.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.update_data_button.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.update_data_button.Location = new System.Drawing.Point(279, 63);
             this.update_data_button.Name = "update_data_button";
             this.update_data_button.Size = new System.Drawing.Size(161, 25);
@@ -118,7 +120,7 @@
             // 
             // last_data_update_label
             // 
-            this.last_data_update_label.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.last_data_update_label.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.last_data_update_label.Location = new System.Drawing.Point(276, 22);
             this.last_data_update_label.Name = "last_data_update_label";
             this.last_data_update_label.Size = new System.Drawing.Size(164, 38);
@@ -129,7 +131,7 @@
             // label_Obs_cond
             // 
             this.label_Obs_cond.AutoSize = true;
-            this.label_Obs_cond.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_Obs_cond.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.label_Obs_cond.Location = new System.Drawing.Point(3, 270);
             this.label_Obs_cond.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
             this.label_Obs_cond.Name = "label_Obs_cond";
@@ -140,7 +142,7 @@
             // label_Sun
             // 
             this.label_Sun.AutoSize = true;
-            this.label_Sun.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_Sun.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.label_Sun.Location = new System.Drawing.Point(3, 215);
             this.label_Sun.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
             this.label_Sun.Name = "label_Sun";
@@ -151,7 +153,7 @@
             // label_Wind
             // 
             this.label_Wind.AutoSize = true;
-            this.label_Wind.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_Wind.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.label_Wind.Location = new System.Drawing.Point(3, 184);
             this.label_Wind.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
             this.label_Wind.Name = "label_Wind";
@@ -162,7 +164,7 @@
             // label_Allsky_ext_STD
             // 
             this.label_Allsky_ext_STD.AutoSize = true;
-            this.label_Allsky_ext_STD.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_Allsky_ext_STD.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.label_Allsky_ext_STD.Location = new System.Drawing.Point(3, 99);
             this.label_Allsky_ext_STD.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
             this.label_Allsky_ext_STD.Name = "label_Allsky_ext_STD";
@@ -173,7 +175,7 @@
             // label_Seeing
             // 
             this.label_Seeing.AutoSize = true;
-            this.label_Seeing.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_Seeing.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.label_Seeing.Location = new System.Drawing.Point(3, 152);
             this.label_Seeing.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
             this.label_Seeing.Name = "label_Seeing";
@@ -184,7 +186,7 @@
             // label_Allsky_ext
             // 
             this.label_Allsky_ext.AutoSize = true;
-            this.label_Allsky_ext.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_Allsky_ext.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.label_Allsky_ext.Location = new System.Drawing.Point(3, 76);
             this.label_Allsky_ext.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
             this.label_Allsky_ext.Name = "label_Allsky_ext";
@@ -195,7 +197,7 @@
             // label_Seeing_ext
             // 
             this.label_Seeing_ext.AutoSize = true;
-            this.label_Seeing_ext.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_Seeing_ext.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.label_Seeing_ext.Location = new System.Drawing.Point(3, 130);
             this.label_Seeing_ext.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
             this.label_Seeing_ext.Name = "label_Seeing_ext";
@@ -206,7 +208,7 @@
             // label_SkyTempSTD
             // 
             this.label_SkyTempSTD.AutoSize = true;
-            this.label_SkyTempSTD.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_SkyTempSTD.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.label_SkyTempSTD.Location = new System.Drawing.Point(3, 45);
             this.label_SkyTempSTD.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
             this.label_SkyTempSTD.Name = "label_SkyTempSTD";
@@ -217,7 +219,7 @@
             // label_SkyTemp
             // 
             this.label_SkyTemp.AutoSize = true;
-            this.label_SkyTemp.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_SkyTemp.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.label_SkyTemp.Location = new System.Drawing.Point(3, 22);
             this.label_SkyTemp.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
             this.label_SkyTemp.Name = "label_SkyTemp";
@@ -228,7 +230,7 @@
             // label_Dome_Cond
             // 
             this.label_Dome_Cond.AutoSize = true;
-            this.label_Dome_Cond.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_Dome_Cond.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.label_Dome_Cond.Location = new System.Drawing.Point(3, 270);
             this.label_Dome_Cond.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
             this.label_Dome_Cond.Name = "label_Dome_Cond";
@@ -256,7 +258,7 @@
             this.groupBox_Dome.Controls.Add(this.checkBox_AutoDome);
             this.groupBox_Dome.Controls.Add(this.comboBox_Dome);
             this.groupBox_Dome.Controls.Add(this.button_Dome_Run);
-            this.groupBox_Dome.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.groupBox_Dome.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.groupBox_Dome.Location = new System.Drawing.Point(484, 5);
             this.groupBox_Dome.Margin = new System.Windows.Forms.Padding(1);
             this.groupBox_Dome.Name = "groupBox_Dome";
@@ -280,11 +282,7 @@
             // numericUpDown_timeout_south
             // 
             this.numericUpDown_timeout_south.Location = new System.Drawing.Point(208, 213);
-            this.numericUpDown_timeout_south.Maximum = new decimal(new int[] {
-            360,
-            0,
-            0,
-            0});
+            this.numericUpDown_timeout_south.Maximum = new decimal(new int[] {360, 0, 0, 0});
             this.numericUpDown_timeout_south.Name = "numericUpDown_timeout_south";
             this.numericUpDown_timeout_south.Size = new System.Drawing.Size(96, 23);
             this.numericUpDown_timeout_south.TabIndex = 20;
@@ -293,11 +291,7 @@
             // numericUpDown_timeout_north
             // 
             this.numericUpDown_timeout_north.Location = new System.Drawing.Point(208, 185);
-            this.numericUpDown_timeout_north.Maximum = new decimal(new int[] {
-            360,
-            0,
-            0,
-            0});
+            this.numericUpDown_timeout_north.Maximum = new decimal(new int[] {360, 0, 0, 0});
             this.numericUpDown_timeout_north.Name = "numericUpDown_timeout_north";
             this.numericUpDown_timeout_north.Size = new System.Drawing.Size(96, 23);
             this.numericUpDown_timeout_north.TabIndex = 19;
@@ -366,7 +360,7 @@
             // label_Shutter_South
             // 
             this.label_Shutter_South.AutoSize = true;
-            this.label_Shutter_South.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_Shutter_South.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.label_Shutter_South.Location = new System.Drawing.Point(3, 112);
             this.label_Shutter_South.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
             this.label_Shutter_South.Name = "label_Shutter_South";
@@ -377,7 +371,7 @@
             // label_Shutter_North
             // 
             this.label_Shutter_North.AutoSize = true;
-            this.label_Shutter_North.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_Shutter_North.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.label_Shutter_North.Location = new System.Drawing.Point(3, 90);
             this.label_Shutter_North.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
             this.label_Shutter_North.Name = "label_Shutter_North";
@@ -388,7 +382,7 @@
             // label_Motor_North
             // 
             this.label_Motor_North.AutoSize = true;
-            this.label_Motor_North.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_Motor_North.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.label_Motor_North.Location = new System.Drawing.Point(3, 45);
             this.label_Motor_North.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
             this.label_Motor_North.Name = "label_Motor_North";
@@ -399,7 +393,7 @@
             // label_Motor_South
             // 
             this.label_Motor_South.AutoSize = true;
-            this.label_Motor_South.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_Motor_South.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.label_Motor_South.Location = new System.Drawing.Point(3, 67);
             this.label_Motor_South.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
             this.label_Motor_South.Name = "label_Motor_South";
@@ -410,7 +404,7 @@
             // label_Dome_Power
             // 
             this.label_Dome_Power.AutoSize = true;
-            this.label_Dome_Power.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_Dome_Power.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.label_Dome_Power.Location = new System.Drawing.Point(3, 22);
             this.label_Dome_Power.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
             this.label_Dome_Power.Name = "label_Dome_Power";
@@ -435,10 +429,7 @@
             // comboBox_Dome
             // 
             this.comboBox_Dome.FormattingEnabled = true;
-            this.comboBox_Dome.Items.AddRange(new object[] {
-            "Open",
-            "Close",
-            "Stop"});
+            this.comboBox_Dome.Items.AddRange(new object[] {"Open", "Close", "Stop"});
             this.comboBox_Dome.Location = new System.Drawing.Point(209, 49);
             this.comboBox_Dome.Margin = new System.Windows.Forms.Padding(1);
             this.comboBox_Dome.Name = "comboBox_Dome";
@@ -460,7 +451,7 @@
             // label_Time
             // 
             this.label_Time.AutoSize = true;
-            this.label_Time.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_Time.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.label_Time.Location = new System.Drawing.Point(8, 307);
             this.label_Time.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
             this.label_Time.Name = "label_Time";
@@ -481,13 +472,24 @@
             // 
             // logBox
             // 
-            this.logBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.logBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.logBox.FormattingEnabled = true;
             this.logBox.ItemHeight = 20;
             this.logBox.Location = new System.Drawing.Point(5, 329);
             this.logBox.Name = "logBox";
             this.logBox.Size = new System.Drawing.Size(875, 184);
             this.logBox.TabIndex = 3;
+            // 
+            // button_disconnect
+            // 
+            this.button_disconnect.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
+            this.button_disconnect.Location = new System.Drawing.Point(279, 108);
+            this.button_disconnect.Name = "button_disconnect";
+            this.button_disconnect.Size = new System.Drawing.Size(161, 25);
+            this.button_disconnect.TabIndex = 12;
+            this.button_disconnect.Text = "Disconnect";
+            this.button_disconnect.UseVisualStyleBackColor = true;
+            this.button_disconnect.Click += new System.EventHandler(this.button_disconnect_Click);
             // 
             // MainForm
             // 
@@ -502,17 +504,18 @@
             this.Margin = new System.Windows.Forms.Padding(1);
             this.Name = "MainForm";
             this.Text = "Meteo&Dome";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Main_Form_FormClosing);
             this.groupBox_Meteo.ResumeLayout(false);
             this.groupBox_Meteo.PerformLayout();
             this.groupBox_Dome.ResumeLayout(false);
             this.groupBox_Dome.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_timeout_south)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_timeout_north)).EndInit();
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
+            ((System.ComponentModel.ISupportInitialize) (this.numericUpDown_timeout_south)).EndInit();
+            ((System.ComponentModel.ISupportInitialize) (this.numericUpDown_timeout_north)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
+
+        private System.Windows.Forms.Button button_disconnect;
 
         #endregion
 

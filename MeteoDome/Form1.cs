@@ -3,7 +3,6 @@ using System.Drawing;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Timers;
 using System.Windows.Forms;
@@ -33,6 +32,8 @@ namespace MeteoDome
         private readonly SerialDevices _serialDevices = new SerialDevices();
         private readonly Logger _logger;
         private int _counter;
+        private bool _br;
+        private bool _work = true;
         private bool _isDomeOpen;
         private bool _isObsCanRun;
         private bool _isObsRunning;
@@ -75,12 +76,7 @@ namespace MeteoDome
             var socketThread = new Thread(socket_manager);
             socketThread.Start();
         }
-
-        private void Main_Form_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            _serialDevices.Close_Port();
-        }
-
+        
         //one second timer for status and clock
         private void OnTimedEvent_Clock(object sender, ElapsedEventArgs e)
         {
@@ -155,11 +151,11 @@ namespace MeteoDome
                     Action();
             }
 
-            Action act1 = () => label_SkyTempSTD.Text = @"Sky temperature STD (deg): " + _skyIr[1].ToString("00.00");
+            void Act1() => label_SkyTempSTD.Text = @"Sky temperature STD (deg): " + _skyIr[1].ToString("00.00");
             if (InvokeRequired)
-                Invoke(act1);
+                Invoke((Action) Act1);
             else
-                act1();
+                Act1();
 
             if (Math.Abs(_skyVis[0] - -1) < Tolerance)
             {
@@ -258,7 +254,7 @@ namespace MeteoDome
             if (checkBox_AutoDome.Checked) Autopilot();
 
             void Action5() => last_data_update_label.Text =
-                @"Last data update time:\n" + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+                "Last data update time:\n" + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
 
             if (InvokeRequired)
                 Invoke((Action) Action5);
@@ -813,107 +809,117 @@ namespace MeteoDome
         private void socket_manager()
         {
             const int port = 8085; // порт для приема входящих запросов
-            // const string ip = "127.0.0.1";
-
             // получаем адреса для запуска сокета
             var ipPoint = new IPEndPoint(IPAddress.Loopback, port);
             // создаем сокет
-            var listenSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            listenSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            // связываем сокет с локальной точкой, по которой будем принимать данные
-            listenSocket.Bind(ipPoint);
-            // начинаем прослушивание
-            listenSocket.Listen(1);
-            _logger.AddLogEntry(@"Сервер запущен. Ожидание подключений...");
+            // var listenSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            var listenSocket = new TcpListener(ipPoint)
+            {
+                ExclusiveAddressUse = true
+            };
+
             while (true)
+            {
                 try
                 {
-                    var handler = listenSocket.Accept();
-                    _logger.AddLogEntry(@"Установленно соединение");
-                    // получаем сообщение
-                    var builder = new StringBuilder();
-                    var data = new byte[256]; // буфер для получаемых данных
-                    do
+                    if (!_work)
                     {
-                        var bytes = handler.Receive(data); // количество полученных байтов
-                        builder.Append(Encoding.Unicode.GetString(data, 0, bytes));
-                    } while (handler.Available > 0);
+                        break;
+                    }
+                    listenSocket.Start();
+                    _logger.AddLogEntry(@"Сервер запущен. Ожидание подключений...");
+                    var tcpClient = listenSocket.AcceptTcpClient();
+                    _logger.AddLogEntry($"Установленно соединение: {tcpClient.Client.RemoteEndPoint}");
 
-                    switch (builder.ToString())
+                    var stream = tcpClient.GetStream();
+                    // создаем StreamReader для чтения данных
+                    var streamReader = new StreamReader(stream);
+                    // создаем StreamWriter для отправки данных
+                    var streamWriter = new StreamWriter(stream);
+                    streamWriter.AutoFlush = true;
+                    _br = false;
+
+                    // получаем сообщение
+                    while (tcpClient.Client.Connected)
                     {
-                        case "sky":
+                        if (!_work)
                         {
-                            // отправляем ответ
-                            data = Encoding.Unicode.GetBytes(_skyIr[0].ToString("00.0"));
-                            handler.Send(data);
                             break;
                         }
-                        case "sky std":
+                        var get = "";
+                        if (stream.CanRead)
                         {
-                            data = Encoding.Unicode.GetBytes(_skyIr[1].ToString("00.0"));
-                            handler.Send(data);
+                            get = streamReader.ReadLine();
+                        }
+
+                        if (get == "stop" || _br)
+                        {
+                            _logger.AddLogEntry("Соединение разорвано");
+                            listenSocket.Stop();
                             break;
                         }
-                        case "extinction":
+                        switch (get)
                         {
-                            data = Encoding.Unicode.GetBytes(_skyVis[0].ToString("00.0"));
-                            handler.Send(data);
-                            break;
-                        }
-                        case "extinction std":
-                        {
-                            data = Encoding.Unicode.GetBytes(_skyVis[1].ToString("00.0"));
-                            handler.Send(data);
-                            break;
-                        }
-                        case "seeing":
-                        {
-                            data = Encoding.Unicode.GetBytes(_seeing[0].ToString("00.0"));
-                            handler.Send(data);
-                            break;
-                        }
-                        case "seeing_extinction":
-                        {
-                            data = Encoding.Unicode.GetBytes(_seeing[1].ToString("00.0"));
-                            handler.Send(data);
-                            break;
-                        }
-                        case "wind":
-                        {
-                            data = Encoding.Unicode.GetBytes(_wind.ToString("00.0"));
-                            handler.Send(data);
-                            break;
-                        }
-                        case "sun":
-                        {
-                            data = Encoding.Unicode.GetBytes(_sunZd.ToString("00.0"));
-                            handler.Send(data);
-                            break;
-                        }
-                        case "obs":
-                        {
-                            data = Encoding.Unicode.GetBytes(_isObsRunning.ToString());
-                            handler.Send(data);
-                            break;
-                        }
-                        case "flat":
-                        {
-                            data = Encoding.Unicode.GetBytes(_isFlat.ToString());
-                            handler.Send(data);
-                            break;
+                            case "sky":
+                            {
+                                // отправляем ответ
+                                streamWriter.WriteLine(_skyIr[0].ToString("00.0"));
+                                break;
+                            }
+                            case "sky std":
+                            {
+                                streamWriter.WriteLine(_skyIr[1].ToString("00.0"));
+                                break;
+                            }
+                            case "extinction":
+                            {
+                                streamWriter.WriteLine(_skyVis[0].ToString("00.0"));
+                                break;
+                            }
+                            case "extinction std":
+                            {
+                                streamWriter.WriteLine(_skyVis[1].ToString("00.0"));
+                                break;
+                            }
+                            case "seeing":
+                            {
+                                streamWriter.WriteLine(_seeing[0].ToString("00.0"));
+                                break;
+                            }
+                            case "seeing_extinction":
+                            {
+                                streamWriter.WriteLine(_seeing[1].ToString("00.0"));
+                                break;
+                            }
+                            case "wind":
+                            {
+                                streamWriter.WriteLine(_wind.ToString("00.0"));
+                                break;
+                            }
+                            case "sun":
+                            {
+                                streamWriter.WriteLine(_sunZd.ToString("00.0"));
+                                break;
+                            }
+                            case "obs":
+                            {
+                                streamWriter.WriteLine(_isObsRunning.ToString());
+                                break;
+                            }
+                            case "flat":
+                            {
+                                streamWriter.WriteLine(_isFlat.ToString());
+                                break;
+                            }
                         }
                     }
-
-                    // закрываем сокет
-                    handler.Shutdown(SocketShutdown.Both);
-                    handler.Close();
                 }
-
-                catch (SocketException ex)
+                catch
                 {
-                    _logger.AddLogEntry(ex.Message);
-                    // throw;
+                    listenSocket.Stop();
+                    break;
                 }
+            }
         }
 
         private void numericUpDown_timeout_north_KeyPress(object sender, KeyPressEventArgs e)
@@ -930,6 +936,18 @@ namespace MeteoDome
             e.Handled = true;
             _logger.AddLogEntry("South timeout change to " + numericUpDown_timeout_south.Value);
             _serialDevices.Write2Serial("1sts=" + numericUpDown_timeout_south.Value);
+        }
+
+        private void button_disconnect_Click(object sender, EventArgs e)
+        {
+            _br = true;
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            _serialDevices.Close_Port();
+            timer1.Stop();
+            _work = false;
         }
     }
 }
