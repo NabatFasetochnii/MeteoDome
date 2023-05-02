@@ -91,6 +91,7 @@ namespace MeteoDome
         {
             if (!_serialPort.IsOpen || !TransmissionEnabled) return;
             // Logger.AddLogEntry("send msg: " + command);
+            command += ';';
             if (command[1] == 'r' || command[1] == 's') //if run command
             {
                 TransmissionEnabled = false;

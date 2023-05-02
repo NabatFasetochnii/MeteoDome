@@ -15,7 +15,7 @@ namespace MeteoDome
 
         public void AddLogEntry(string entry)
         {
-            if (_logBox.Items.Count >= 100)
+            if (_logBox.Items.Count >= 1024)
             {
                 SaveLogs();
                 _logBox.Items.Clear();
