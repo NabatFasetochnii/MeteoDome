@@ -122,7 +122,9 @@
     </ItemGroup>
     <ItemGroup>
         <Content Include="README.txt" />
-        <Content Include="Robophot.cfg" />
+        <Content Include="Robophot.cfg">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
     <ItemGroup>
         <BootstrapperPackage Include=".NETFramework,Version=v4.8">
