@@ -37,3 +37,31 @@ C:\Users\Nikita\RiderProjects\MeteoDome\MeteoDome\bin\Debug\System.Memory.xml
 C:\Users\Nikita\RiderProjects\MeteoDome\MeteoDome\bin\Debug\System.Numerics.Vectors.xml
 C:\Users\Nikita\RiderProjects\MeteoDome\MeteoDome\bin\Debug\System.Runtime.CompilerServices.Unsafe.xml
 C:\Users\Nikita\RiderProjects\MeteoDome\MeteoDome\bin\Debug\System.Text.Encoding.CodePages.xml
+D:\RoboPhot Software\MeteoDome\MeteoDome\bin\Debug\Robophot.cfg
+D:\RoboPhot Software\MeteoDome\MeteoDome\bin\Debug\MeteoDome.exe.config
+D:\RoboPhot Software\MeteoDome\MeteoDome\bin\Debug\MeteoDome.exe
+D:\RoboPhot Software\MeteoDome\MeteoDome\bin\Debug\MeteoDome.pdb
+D:\RoboPhot Software\MeteoDome\MeteoDome\bin\Debug\System.Buffers.dll
+D:\RoboPhot Software\MeteoDome\MeteoDome\bin\Debug\System.Memory.dll
+D:\RoboPhot Software\MeteoDome\MeteoDome\bin\Debug\System.Numerics.Vectors.dll
+D:\RoboPhot Software\MeteoDome\MeteoDome\bin\Debug\System.Runtime.CompilerServices.Unsafe.dll
+D:\RoboPhot Software\MeteoDome\MeteoDome\bin\Debug\System.Text.Encoding.CodePages.dll
+D:\RoboPhot Software\MeteoDome\MeteoDome\bin\Debug\Mono.Security.dll
+D:\RoboPhot Software\MeteoDome\MeteoDome\bin\Debug\Npgsql.pdb
+D:\RoboPhot Software\MeteoDome\MeteoDome\bin\Debug\Npgsql.xml
+D:\RoboPhot Software\MeteoDome\MeteoDome\bin\Debug\System.Buffers.xml
+D:\RoboPhot Software\MeteoDome\MeteoDome\bin\Debug\System.Memory.xml
+D:\RoboPhot Software\MeteoDome\MeteoDome\bin\Debug\System.Numerics.Vectors.xml
+D:\RoboPhot Software\MeteoDome\MeteoDome\bin\Debug\System.Runtime.CompilerServices.Unsafe.xml
+D:\RoboPhot Software\MeteoDome\MeteoDome\bin\Debug\System.Text.Encoding.CodePages.xml
+D:\RoboPhot Software\MeteoDome\MeteoDome\obj\Debug\MeteoDome.csproj.AssemblyReference.cache
+D:\RoboPhot Software\MeteoDome\MeteoDome\obj\Debug\MeteoDome.csproj.SuggestedBindingRedirects.cache
+D:\RoboPhot Software\MeteoDome\MeteoDome\obj\Debug\MeteoDome.MainForm.resources
+D:\RoboPhot Software\MeteoDome\MeteoDome\obj\Debug\MeteoDome.Properties.Resources.resources
+D:\RoboPhot Software\MeteoDome\MeteoDome\obj\Debug\MeteoDome.csproj.GenerateResource.cache
+D:\RoboPhot Software\MeteoDome\MeteoDome\obj\Debug\MeteoDome.csproj.CoreCompileInputs.cache
+D:\RoboPhot Software\MeteoDome\MeteoDome\obj\Debug\MeteoDome.csproj.CopyComplete
+D:\RoboPhot Software\MeteoDome\MeteoDome\obj\Debug\MeteoDome.exe
+D:\RoboPhot Software\MeteoDome\MeteoDome\obj\Debug\MeteoDome.pdb
+D:\RoboPhot Software\MeteoDome\MeteoDome\bin\Debug\System.Threading.Tasks.Dataflow.dll
+D:\RoboPhot Software\MeteoDome\MeteoDome\bin\Debug\System.Threading.Tasks.Dataflow.xml

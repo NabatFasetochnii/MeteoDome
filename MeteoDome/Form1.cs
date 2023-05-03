@@ -31,7 +31,7 @@ namespace MeteoDome
         ////globals for dome
         private readonly SerialDevices _serialDevices = new SerialDevices();
         private readonly Logger _logger;
-        private int _counter;
+        // private int _counter;
         private bool _br;
         private bool _work = true;
         private bool _isDomeOpen;
@@ -46,6 +46,8 @@ namespace MeteoDome
         private double[] _skyVis = {-1, -1};
         private double _sunZd = -1;
         private double _wind = -1;
+        
+        // Thread getDomeThread;
 
         public MainForm()
         {
@@ -61,18 +63,13 @@ namespace MeteoDome
             if (!_serialDevices.Init())
                 if (MessageBox.Show(@"Can't open Dome serial port", @"OK", MessageBoxButtons.OK) == DialogResult.OK)
                     Environment.Exit(1);
-
+            // getMeteoThread = new Thread(GetMeteo);
+            // getDomeThread = new Thread(GetDome);
             //create timer for main loop
             MeteoTimer.Elapsed += OnTimedEvent_Clock;
             MeteoTimer.Interval = 5000;
             MeteoTimer.Start();
-
-            // DomeTimer.Enabled += ;
-            // DomeTimer.Interval = 5000;
-            // DomeTimer.Start();
-
-            // var getMeteoThread = new Thread(GetMeteo);
-            // getMeteoThread.Start();  
+            
             var socketThread = new Thread(socket_manager);
             socketThread.Start();
         }
@@ -80,10 +77,11 @@ namespace MeteoDome
         //one second timer for status and clock
         private void OnTimedEvent_Clock(object sender, ElapsedEventArgs e)
         {
+            // if(!getDomeThread.IsAlive)
+            //     getDomeThread.Start();
             var getMeteoThread = new Thread(GetMeteo);
-            var getDomeThread = new Thread(GetDome);
-            getDomeThread.Start();
             getMeteoThread.Start();
+            _serialDevices.UpDate();
         }
 
         private void GetMeteo()
@@ -100,24 +98,6 @@ namespace MeteoDome
             if ((_skyIr[0] < -1) & (_skyIr[1] > 0) & (-1 < _wind) & (_wind < 100))
                 _isDomeOpen =
                     Meteo_DB.Get_Weather_Dome(_isShutterNorthOpen & _isShutterSouthOpen, _skyIr[0], _skyIr[1], _wind);
-        }
-
-        private void GetDome()
-        {
-            const int waitTime = 50; // HACK говно, надо по-другому
-            _serialDevices.Write2Serial("1gcp");
-            Thread.Sleep(waitTime);
-            _serialDevices.Write2Serial("1gcb");
-            Thread.Sleep(waitTime);
-            _serialDevices.Write2Serial("1gct");
-            Thread.Sleep(waitTime);
-            _serialDevices.Write2Serial("1gcm");
-            Thread.Sleep(waitTime);
-            _serialDevices.Write2Serial("1gtn");
-            Thread.Sleep(waitTime);
-            _serialDevices.Write2Serial("1gts");
-            Thread.Sleep(waitTime);
-            _serialDevices.Write2Serial("1gin");
         }
 
         private void SetMeteo()
@@ -318,9 +298,6 @@ namespace MeteoDome
         {
             //label_Time.Invoke(new Action(() => label_Time.Text = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")));
             label_Time.Text = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
-            _counter += 1;
-            if (_counter <= 15) return;
-            _counter = 0;
             SetMeteo();
             SetDome();
         }
@@ -330,7 +307,6 @@ namespace MeteoDome
             var power = _serialDevices.Power;
             var dome = _serialDevices.Dome;
             var buttons = _serialDevices.buttons;
-            // var timeout = _serialDevices.timeout;
             var timeoutNorth = _serialDevices.timeout_north;
             var timeoutSouth = _serialDevices.timeout_south;
             var initflag = Convert.ToBoolean(_serialDevices.initflag);
@@ -396,7 +372,7 @@ namespace MeteoDome
                 label_Motor_North.ForeColor = Color.Green;
                 // msg = "Северный мотор открывает крышу";
             }
-            else if (dome[2])
+            if (dome[2])
             {
                 void Action() => label_Motor_South.Text = @"Motor south: closing";
                 if (InvokeRequired)
@@ -416,42 +392,62 @@ namespace MeteoDome
                 label_Motor_South.ForeColor = Color.Green;
                 // msg = "Южный мотор открывает крышу";
             }
-            else
+            if (!(dome[0] | dome[1]))
             {
-                Action action = () => label_Motor_North.Text = @"Motor north: run down";
+                void Action() => label_Motor_North.Text = @"Motor north: run down";
                 if (InvokeRequired)
-                    Invoke(action);
+                    Invoke((Action) Action);
                 else
-                    action();
-                action = () => label_Motor_South.Text = @"Motor south: run down";
-                if (InvokeRequired)
-                    Invoke(action);
-                else
-                    action();
+                    Action();
                 label_Motor_North.ForeColor = Color.Red;
+                Action();
+            }
+            
+            if (!(dome[2] | dome[3]))
+            {
+                void Action() => label_Motor_South.Text = @"Motor south: run down";
+                if (InvokeRequired)
+                    Invoke((Action) Action);
+                else
+                    Action();
                 label_Motor_South.ForeColor = Color.Red;
 
-                action();
-                // msg = "Оба мотора не работают";
+                Action();
             }
-
-            // logger.AddLogEntry(msg);
-
-            // msg = "северный концовик ";
-            label_Shutter_North.Text = dome[5] ? "Shutter north: opened" : "Shutter north: closed";
-            label_Shutter_North.ForeColor = dome[5] ? Color.Green : Color.Red;
+            
+            if (dome[5])
+            {
+                label_Shutter_North.Text = @"Shutter north: opened";
+                label_Shutter_North.ForeColor = Color.Green;
+            }
+            else if (dome[4])
+            {
+                label_Shutter_North.Text = @"Shutter north: closed";
+                label_Shutter_North.ForeColor = Color.Red;
+            }
+            else
+            {
+                label_Shutter_North.Text = @"Shutter north: running";
+                label_Shutter_North.ForeColor = Color.DarkOrange;
+            }
             _isShutterNorthOpen = dome[5];
-            // msg += "; южный концовик ";
-            // msg += Dome[6] ? "закрыт" : "открыт";
-            label_Shutter_South.Text = dome[7] ? "Shutter south: opened" : "Shutter south: closed";
-            label_Shutter_South.ForeColor = dome[7] ? Color.Green : Color.Red;
+            
+            if (dome[7])
+            {
+                label_Shutter_South.Text = @"Shutter south: opened";
+                label_Shutter_South.ForeColor = Color.Green;
+            }
+            else if (dome[6])
+            {
+                label_Shutter_South.Text = @"Shutter south: closed";
+                label_Shutter_South.ForeColor = Color.Red;
+            }
+            else
+            {
+                label_Shutter_South.Text = @"Shutter south: running";
+                label_Shutter_South.ForeColor = Color.DarkOrange;
+            }
             _isShutterSouthOpen = dome[7];
-            // logger.AddLogEntry(msg);
-
-            label_Dome_Cond.ForeColor = _isShutterNorthOpen & _isShutterSouthOpen ? Color.Green : Color.Red;
-            label_Dome_Cond.Text = _isShutterNorthOpen & _isShutterSouthOpen
-                ? "Dome conditions: Open"
-                : "Dome conditions: Close";
 
             if (!buttons[4] & !buttons[5])
             {
@@ -614,14 +610,17 @@ namespace MeteoDome
         //TODO opening/closing
         private void open_north()
         {
-            if (_isShutterNorthOpen) return;
+            // if (_isShutterNorthOpen) return;
+            
+            
             if (_serialDevices.Power[5])
             {
-                // label_Shutter_North.Text = @"Shutter north: running";
+                label_Shutter_North.Text = @"Shutter north: running";
                 _logger.AddLogEntry("Opening north");
-                _serialDevices.Write2Serial("1rno");
-                _isShutterNorthOpen = true;
-                // label_Shutter_North.Text = @"Shutter north: opened";
+                _serialDevices.AddTask("1rno");
+                // _serialDevices.Write2Serial("1rno");
+                // _isShutterNorthOpen = true;
+                label_Shutter_North.Text = @"Shutter north: opened";
             }
             else
             {
@@ -631,14 +630,15 @@ namespace MeteoDome
 
         private void close_north()
         {
-            if (!_isShutterNorthOpen) return;
-            if (_serialDevices.Power[0])
+            // if (!_isShutterNorthOpen) return;
+            if (_serialDevices.Power[5])
             {
-                // label_Shutter_North.Text = @"Shutter north: running";
+                label_Shutter_North.Text = @"Shutter north: running";
                 _logger.AddLogEntry("Closing north");
-                _serialDevices.Write2Serial("1rnc");
-                _isShutterNorthOpen = false;
-                // label_Shutter_North.Text = @"Shutter north: closed";
+                _serialDevices.AddTask("1rnc");
+                // _serialDevices.Write2Serial("1rnc");
+                // _isShutterNorthOpen = false;
+                label_Shutter_North.Text = @"Shutter north: closed";
             }
             else
             {
@@ -648,12 +648,14 @@ namespace MeteoDome
 
         private void open_south()
         {
-            if (_isShutterSouthOpen) return;
-            if (_serialDevices.Power[3])
+            // if (_isShutterSouthOpen) return;
+            if (_serialDevices.Power[6])
             {
                 label_Shutter_South.Text = @"Shutter south: running";
-                _serialDevices.Write2Serial("1rso");
-                _isShutterSouthOpen = true;
+                _serialDevices.AddTask("1rso");
+                // _serialDevices.Write2Serial("1rso");
+                _logger.AddLogEntry("Opening south");
+                // _isShutterSouthOpen = true;
                 // label_Shutter_South.Text = @"Shutter south: opened";
             }
             else
@@ -664,12 +666,14 @@ namespace MeteoDome
 
         private void close_south()
         {
-            if (!_isShutterSouthOpen) return;
-            if (_serialDevices.Power[2])
+            // if (!_isShutterSouthOpen) return;
+            if (_serialDevices.Power[6])
             {
                 label_Shutter_South.Text = @"Shutter south: running";
-                _serialDevices.Write2Serial("1rsc");
-                _isShutterSouthOpen = false;
+                _serialDevices.AddTask("1rsc");
+                // _serialDevices.Write2Serial("1rsc");
+                _logger.AddLogEntry("Closing south");
+                // _isShutterSouthOpen = false;
                 // label_Shutter_South.Text = @"Shutter south: closed";
             }
             else
@@ -755,7 +759,8 @@ namespace MeteoDome
 
         private void update_dome()
         {
-            GetDome();
+            // GetDome();
+            _serialDevices.UpDate();
             SetDome();
         }
 
@@ -776,11 +781,12 @@ namespace MeteoDome
                         break;
                     }
                     case "Stop":
-                        _serialDevices.Write2Serial("1rns");
+                        // _serialDevices.Write2Serial("1rns");
+                        _serialDevices.AddTask("1rns");
                         _logger.AddLogEntry("Stop north");
                         break;
                 }
-
+            
             if (!checkBoxSouth.Checked) return;
             switch (comboBox_Dome.Text)
             {
@@ -795,7 +801,8 @@ namespace MeteoDome
                     break;
                 }
                 case "Stop":
-                    _serialDevices.Write2Serial("1rss");
+                    // _serialDevices.Write2Serial("1rss");
+                    _serialDevices.AddTask("1rss");
                     _logger.AddLogEntry("Stop south");
                     break;
             }
@@ -927,7 +934,8 @@ namespace MeteoDome
             if (e.KeyChar != (char) Keys.Return) return;
             e.Handled = true;
             _logger.AddLogEntry("North timeout change to " + numericUpDown_timeout_north.Value);
-            _serialDevices.Write2Serial("1stn=" + numericUpDown_timeout_north.Value);
+            // _serialDevices.Write2Serial("1stn=" + numericUpDown_timeout_north.Value);
+            _serialDevices.AddTask("1stn=" + numericUpDown_timeout_north.Value);
         }
 
         private void numericUpDown_timeout_south_KeyPress(object sender, KeyPressEventArgs e)
@@ -935,7 +943,8 @@ namespace MeteoDome
             if (e.KeyChar != (char) Keys.Return) return;
             e.Handled = true;
             _logger.AddLogEntry("South timeout change to " + numericUpDown_timeout_south.Value);
-            _serialDevices.Write2Serial("1sts=" + numericUpDown_timeout_south.Value);
+            // _serialDevices.Write2Serial("1sts=" + numericUpDown_timeout_south.Value);
+            _serialDevices.AddTask("1sts=" + numericUpDown_timeout_south.Value);
         }
 
         private void button_disconnect_Click(object sender, EventArgs e)

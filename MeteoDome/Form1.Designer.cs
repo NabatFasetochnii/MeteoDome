@@ -30,6 +30,7 @@
         {
             this.components = new System.ComponentModel.Container();
             this.groupBox_Meteo = new System.Windows.Forms.GroupBox();
+            this.button_disconnect = new System.Windows.Forms.Button();
             this.weather_label = new System.Windows.Forms.Label();
             this.update_data_button = new System.Windows.Forms.Button();
             this.last_data_update_label = new System.Windows.Forms.Label();
@@ -42,7 +43,6 @@
             this.label_Seeing_ext = new System.Windows.Forms.Label();
             this.label_SkyTempSTD = new System.Windows.Forms.Label();
             this.label_SkyTemp = new System.Windows.Forms.Label();
-            this.label_Dome_Cond = new System.Windows.Forms.Label();
             this.groupBox_Dome = new System.Windows.Forms.GroupBox();
             this.checkBox_initflag = new System.Windows.Forms.CheckBox();
             this.numericUpDown_timeout_south = new System.Windows.Forms.NumericUpDown();
@@ -65,7 +65,6 @@
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.logBox = new System.Windows.Forms.ListBox();
-            this.button_disconnect = new System.Windows.Forms.Button();
             this.groupBox_Meteo.SuspendLayout();
             this.groupBox_Dome.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize) (this.numericUpDown_timeout_south)).BeginInit();
@@ -96,6 +95,17 @@
             this.groupBox_Meteo.TabIndex = 0;
             this.groupBox_Meteo.TabStop = false;
             this.groupBox_Meteo.Text = "Meteo";
+            // 
+            // button_disconnect
+            // 
+            this.button_disconnect.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
+            this.button_disconnect.Location = new System.Drawing.Point(279, 108);
+            this.button_disconnect.Name = "button_disconnect";
+            this.button_disconnect.Size = new System.Drawing.Size(161, 25);
+            this.button_disconnect.TabIndex = 12;
+            this.button_disconnect.Text = "Disconnect";
+            this.button_disconnect.UseVisualStyleBackColor = true;
+            this.button_disconnect.Click += new System.EventHandler(this.button_disconnect_Click);
             // 
             // weather_label
             // 
@@ -227,17 +237,6 @@
             this.label_SkyTemp.TabIndex = 0;
             this.label_SkyTemp.Text = "Sky temperature not available";
             // 
-            // label_Dome_Cond
-            // 
-            this.label_Dome_Cond.AutoSize = true;
-            this.label_Dome_Cond.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
-            this.label_Dome_Cond.Location = new System.Drawing.Point(3, 270);
-            this.label_Dome_Cond.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
-            this.label_Dome_Cond.Name = "label_Dome_Cond";
-            this.label_Dome_Cond.Size = new System.Drawing.Size(156, 17);
-            this.label_Dome_Cond.TabIndex = 8;
-            this.label_Dome_Cond.Text = "Dome conditions: Close";
-            // 
             // groupBox_Dome
             // 
             this.groupBox_Dome.Controls.Add(this.checkBox_initflag);
@@ -252,7 +251,6 @@
             this.groupBox_Dome.Controls.Add(this.label_Shutter_South);
             this.groupBox_Dome.Controls.Add(this.label_Shutter_North);
             this.groupBox_Dome.Controls.Add(this.label_Motor_North);
-            this.groupBox_Dome.Controls.Add(this.label_Dome_Cond);
             this.groupBox_Dome.Controls.Add(this.label_Motor_South);
             this.groupBox_Dome.Controls.Add(this.label_Dome_Power);
             this.groupBox_Dome.Controls.Add(this.checkBox_AutoDome);
@@ -282,7 +280,7 @@
             // numericUpDown_timeout_south
             // 
             this.numericUpDown_timeout_south.Location = new System.Drawing.Point(208, 213);
-            this.numericUpDown_timeout_south.Maximum = new decimal(new int[] {360, 0, 0, 0});
+            this.numericUpDown_timeout_south.Maximum = new decimal(new int[] {1000, 0, 0, 0});
             this.numericUpDown_timeout_south.Name = "numericUpDown_timeout_south";
             this.numericUpDown_timeout_south.Size = new System.Drawing.Size(96, 23);
             this.numericUpDown_timeout_south.TabIndex = 20;
@@ -291,7 +289,7 @@
             // numericUpDown_timeout_north
             // 
             this.numericUpDown_timeout_north.Location = new System.Drawing.Point(208, 185);
-            this.numericUpDown_timeout_north.Maximum = new decimal(new int[] {360, 0, 0, 0});
+            this.numericUpDown_timeout_north.Maximum = new decimal(new int[] {1000, 0, 0, 0});
             this.numericUpDown_timeout_north.Name = "numericUpDown_timeout_north";
             this.numericUpDown_timeout_north.Size = new System.Drawing.Size(96, 23);
             this.numericUpDown_timeout_north.TabIndex = 19;
@@ -480,17 +478,6 @@
             this.logBox.Size = new System.Drawing.Size(875, 184);
             this.logBox.TabIndex = 3;
             // 
-            // button_disconnect
-            // 
-            this.button_disconnect.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
-            this.button_disconnect.Location = new System.Drawing.Point(279, 108);
-            this.button_disconnect.Name = "button_disconnect";
-            this.button_disconnect.Size = new System.Drawing.Size(161, 25);
-            this.button_disconnect.TabIndex = 12;
-            this.button_disconnect.Text = "Disconnect";
-            this.button_disconnect.UseVisualStyleBackColor = true;
-            this.button_disconnect.Click += new System.EventHandler(this.button_disconnect_Click);
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -504,11 +491,11 @@
             this.Margin = new System.Windows.Forms.Padding(1);
             this.Name = "MainForm";
             this.Text = "Meteo&Dome";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.groupBox_Meteo.ResumeLayout(false);
             this.groupBox_Meteo.PerformLayout();
             this.groupBox_Dome.ResumeLayout(false);
             this.groupBox_Dome.PerformLayout();
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             ((System.ComponentModel.ISupportInitialize) (this.numericUpDown_timeout_south)).EndInit();
             ((System.ComponentModel.ISupportInitialize) (this.numericUpDown_timeout_north)).EndInit();
             this.ResumeLayout(false);
@@ -535,7 +522,6 @@
         private System.Windows.Forms.ComboBox comboBox_Dome;
         private System.Windows.Forms.CheckBox checkBox_AutoDome;
         private System.Windows.Forms.Label label_Obs_cond;
-        private System.Windows.Forms.Label label_Dome_Cond;
         private System.Windows.Forms.Label label_Shutter_South;
         private System.Windows.Forms.Label label_Shutter_North;
         private System.Windows.Forms.Label label_Motor_North;
