@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO.Ports;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Timers;
 using Timer = System.Timers.Timer;
 
@@ -12,16 +11,30 @@ namespace MeteoDome
     public class SerialDevices
     {
         private static readonly Timer ComTimer = new Timer(); //timer for Serial port communication delay
-        private readonly SerialPort _serialPort = new SerialPort();
-        public BitArray buttons = new BitArray(8, false);
+
         // private BufferBlock<Consumer> consumers = new BufferBlock<Consumer>();
-        private static List<string> waiters = new List<string>();
+        private static readonly List<string> waiters = new List<string>();
+        private readonly SerialPort _serialPort = new SerialPort();
+        private Thread _proc;
+        public BitArray buttons = new BitArray(8, false);
 
         //serial port
         public string ComId;
 
+        private readonly string[] commands =
+        {
+            "1gcp",
+            "1gcb",
+            "1gct",
+            "1gcm",
+            "1gtn",
+            "1gts",
+            "1gin",
+            "1gca"
+        };
+
         public BitArray Dome = new BitArray(8, false);
-        
+
         public int initflag;
         public Logger Logger;
 
@@ -34,17 +47,6 @@ namespace MeteoDome
         public int timeout_north = 120;
         public int timeout_south = 120;
         public bool TransmissionEnabled;
-        private string[] commands = {
-            "1gcp",
-            "1gcb",
-            "1gct",
-            "1gcm",
-            "1gtn",
-            "1gts",
-            "1gin",
-            "1gca" 
-        };
-        private Thread _proc;
 
         //protected virtual void Dispose(bool disposing)
         //{
@@ -54,11 +56,11 @@ namespace MeteoDome
         //    }
         //}
 
-        //public void Dispose()
-        //{
-        //    Dispose(true);
-        //    GC.SuppressFinalize(this);
-        //}
+        public void Dispose()
+        {
+            _serialPort.Dispose();
+            _proc.Abort();
+        }
 
         public bool Init()
         {
@@ -119,21 +121,15 @@ namespace MeteoDome
                 Logger.AddLogEntry(ex.ToString());
             }
         }
-        
+
         public void UpDate()
         {
-            foreach (var command in commands)
-            {
-                AddTask(command);
-            }
+            foreach (var command in commands) AddTask(command);
         }
 
         public void AddTask(string com)
         {
-            if (!waiters.Contains(com))
-            {
-                waiters.Add(com);
-            }
+            if (!waiters.Contains(com)) waiters.Add(com);
         }
 
         //send command without answer
@@ -149,6 +145,7 @@ namespace MeteoDome
                     _serialPort.WriteLine(command);
                     TransmissionEnabled = true;
                 }
+
                 if (command[1] == 'g') //if question
                 {
                     _serialPort.DiscardInBuffer(); //clear input buffer
@@ -191,12 +188,12 @@ namespace MeteoDome
             byte value;
             var bits = new BitArray(8);
             // var bits = "";
-            int t = 0;
+            var t = 0;
 
             try
             {
                 reply = indata.Substring(1, 3);
-                if (reply == "ats" || reply=="atn")
+                if (reply == "ats" || reply == "atn")
                 {
                     t = Convert.ToInt32(indata.Substring(5));
                 }
@@ -206,9 +203,9 @@ namespace MeteoDome
                     var gar = BitConverter.GetBytes(value);
                     bits = new BitArray(new[] {gar[0]});
                     bool buf;
-                    for (int i = 0; i < bits.Count / 2; i++) // HACK Reverse order of bits variable
+                    for (var i = 0; i < bits.Count / 2; i++) // HACK Reverse order of bits variable
                     {
-                        buf = bits[i];  
+                        buf = bits[i];
                         bits[i] = bits[bits.Count - i - 1];
                         bits[bits.Count - i - 1] = buf;
                     }
@@ -264,5 +261,4 @@ namespace MeteoDome
             TransmissionEnabled = true; //enable transmission
         }
     }
-
 }

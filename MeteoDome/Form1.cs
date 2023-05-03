@@ -23,6 +23,8 @@ namespace MeteoDome
         private static readonly string Path = Directory.GetCurrentDirectory();
 
         private static readonly Timer MeteoTimer = new Timer(); //clock timer and status check timer
+
+        private readonly Logger _logger;
         // private static readonly Timer DomeTimer = new Timer(); //clock timer and status check timer
 
         ////globals for database
@@ -30,14 +32,13 @@ namespace MeteoDome
 
         ////globals for dome
         private readonly SerialDevices _serialDevices = new SerialDevices();
-        private readonly Logger _logger;
+
         // private int _counter;
         private bool _br;
-        private bool _work = true;
         private bool _isDomeOpen;
+        private bool _isFlat;
         private bool _isObsCanRun;
         private bool _isObsRunning;
-        private bool _isFlat;
         private bool _isShutterNorthOpen;
         private bool _isShutterSouthOpen;
         private int _isWeatherGood = -1;
@@ -46,8 +47,7 @@ namespace MeteoDome
         private double[] _skyVis = {-1, -1};
         private double _sunZd = -1;
         private double _wind = -1;
-        
-        // Thread getDomeThread;
+        private bool _work = true;
 
         public MainForm()
         {
@@ -63,17 +63,15 @@ namespace MeteoDome
             if (!_serialDevices.Init())
                 if (MessageBox.Show(@"Can't open Dome serial port", @"OK", MessageBoxButtons.OK) == DialogResult.OK)
                     Environment.Exit(1);
-            // getMeteoThread = new Thread(GetMeteo);
-            // getDomeThread = new Thread(GetDome);
             //create timer for main loop
             MeteoTimer.Elapsed += OnTimedEvent_Clock;
             MeteoTimer.Interval = 5000;
             MeteoTimer.Start();
-            
+
             var socketThread = new Thread(socket_manager);
             socketThread.Start();
         }
-        
+
         //one second timer for status and clock
         private void OnTimedEvent_Clock(object sender, ElapsedEventArgs e)
         {
@@ -104,7 +102,11 @@ namespace MeteoDome
         {
             if (Math.Abs(_skyIr[0] - -1) < Tolerance)
             {
-                void Action() => label_SkyTemp.Text = @"Sky temperature (deg): disconnected";
+                void Action()
+                {
+                    label_SkyTemp.Text = @"Sky temperature (deg): disconnected";
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
@@ -124,14 +126,22 @@ namespace MeteoDome
             }
             else
             {
-                void Action() => label_SkyTemp.Text = @"Sky temperature (deg): " + _skyIr[0].ToString("00.0");
+                void Action()
+                {
+                    label_SkyTemp.Text = @"Sky temperature (deg): " + _skyIr[0].ToString("00.0");
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
                     Action();
             }
 
-            void Act1() => label_SkyTempSTD.Text = @"Sky temperature STD (deg): " + _skyIr[1].ToString("00.00");
+            void Act1()
+            {
+                label_SkyTempSTD.Text = @"Sky temperature STD (deg): " + _skyIr[1].ToString("00.00");
+            }
+
             if (InvokeRequired)
                 Invoke((Action) Act1);
             else
@@ -139,7 +149,11 @@ namespace MeteoDome
 
             if (Math.Abs(_skyVis[0] - -1) < Tolerance)
             {
-                void Action() => label_Allsky_ext.Text = @"AllSky extinction (mag): disconnected";
+                void Action()
+                {
+                    label_Allsky_ext.Text = @"AllSky extinction (mag): disconnected";
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
@@ -147,7 +161,11 @@ namespace MeteoDome
             }
             else if ((_skyVis[0] == 0) & (Math.Abs(_skyVis[1] - -1) < Tolerance))
             {
-                void Action() => label_Allsky_ext.Text = @"AllSky extinction (mag): old data";
+                void Action()
+                {
+                    label_Allsky_ext.Text = @"AllSky extinction (mag): old data";
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
@@ -155,21 +173,33 @@ namespace MeteoDome
             }
             else
             {
-                void Action() => label_Allsky_ext.Text = @"AllSky extinction (mag): " + _skyVis[0].ToString("00.0");
+                void Action()
+                {
+                    label_Allsky_ext.Text = @"AllSky extinction (mag): " + _skyVis[0].ToString("00.0");
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
                     Action();
             }
 
-            void Act2() => label_Allsky_ext_STD.Text = @"AllSky extinction STD (mag): " + _skyVis[1].ToString("00.00");
+            void Act2()
+            {
+                label_Allsky_ext_STD.Text = @"AllSky extinction STD (mag): " + _skyVis[1].ToString("00.00");
+            }
+
             if (InvokeRequired)
                 Invoke((Action) Act2);
             else
                 Act2();
             if (Math.Abs(_seeing[0] - -1) < Tolerance)
             {
-                void Action() => label_Seeing_ext.Text = @"Seeing extinction (mag): disconnected";
+                void Action()
+                {
+                    label_Seeing_ext.Text = @"Seeing extinction (mag): disconnected";
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
@@ -177,7 +207,11 @@ namespace MeteoDome
             }
             else if ((_seeing[0] == 0) & (Math.Abs(_skyVis[1] - -1) < Tolerance))
             {
-                void Action() => label_Seeing_ext.Text = @"Seeing extinction (mag): old data";
+                void Action()
+                {
+                    label_Seeing_ext.Text = @"Seeing extinction (mag): old data";
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
@@ -185,14 +219,22 @@ namespace MeteoDome
             }
             else
             {
-                void Action() => label_Seeing_ext.Text = @"Seeing extinction (mag): " + _seeing[1].ToString("00.0");
+                void Action()
+                {
+                    label_Seeing_ext.Text = @"Seeing extinction (mag): " + _seeing[1].ToString("00.0");
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
                     Action();
             }
 
-            void Act3() => label_Seeing.Text = @"Seeing (arcsec): " + _seeing[0].ToString("00.0");
+            void Act3()
+            {
+                label_Seeing.Text = @"Seeing (arcsec): " + _seeing[0].ToString("00.0");
+            }
+
             if (InvokeRequired)
                 Invoke((Action) Act3);
             else
@@ -200,21 +242,36 @@ namespace MeteoDome
             switch (_wind)
             {
                 case -1:
-                    void Action() => label_Wind.Text = @"Wind (m/s): disconnected";
+
+                    void Action()
+                    {
+                        label_Wind.Text = @"Wind (m/s): disconnected";
+                    }
+
                     if (InvokeRequired)
                         Invoke((Action) Action);
                     else
                         Action();
                     break;
                 case 100:
-                    void Action2() => label_Wind.Text = @"Wind (m/s): old data";
+
+                    void Action2()
+                    {
+                        label_Wind.Text = @"Wind (m/s): old data";
+                    }
+
                     if (InvokeRequired)
                         Invoke((Action) Action2);
                     else
                         Action2();
                     break;
                 default:
-                    void Action3() => label_Wind.Text = @"Wind (m/s): " + _wind.ToString("00.0");
+
+                    void Action3()
+                    {
+                        label_Wind.Text = @"Wind (m/s): " + _wind.ToString("00.0");
+                    }
+
                     if (InvokeRequired)
                         Invoke((Action) Action3);
                     else
@@ -223,7 +280,11 @@ namespace MeteoDome
             }
 
 
-            void Action4() => label_Sun.Text = @"Sun zenith distance (deg): " + _sunZd.ToString("00.0");
+            void Action4()
+            {
+                label_Sun.Text = @"Sun zenith distance (deg): " + _sunZd.ToString("00.0");
+            }
+
             if (InvokeRequired)
                 Invoke((Action) Action4);
             else
@@ -233,8 +294,11 @@ namespace MeteoDome
 
             if (checkBox_AutoDome.Checked) Autopilot();
 
-            void Action5() => last_data_update_label.Text =
-                "Last data update time:\n" + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+            void Action5()
+            {
+                last_data_update_label.Text =
+                    "Last data update time:\n" + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+            }
 
             if (InvokeRequired)
                 Invoke((Action) Action5);
@@ -247,7 +311,12 @@ namespace MeteoDome
             switch (_isWeatherGood)
             {
                 case -1:
-                    void Action() => weather_label.Text = BadString;
+
+                    void Action()
+                    {
+                        weather_label.Text = BadString;
+                    }
+
                     if (InvokeRequired)
                         Invoke((Action) Action);
                     else
@@ -255,7 +324,12 @@ namespace MeteoDome
                     weather_label.ForeColor = Color.Red;
                     break;
                 case 0:
-                    void Action1() => weather_label.Text = @"Weather is good for flat frame";
+
+                    void Action1()
+                    {
+                        weather_label.Text = @"Weather is good for flat frame";
+                    }
+
                     if (InvokeRequired)
                         Invoke((Action) Action1);
                     else
@@ -263,7 +337,12 @@ namespace MeteoDome
                     weather_label.ForeColor = Color.DarkOrange;
                     break;
                 case 1:
-                    void Action2() => weather_label.Text = GoodString;
+
+                    void Action2()
+                    {
+                        weather_label.Text = GoodString;
+                    }
+
                     if (InvokeRequired)
                         Invoke((Action) Action2);
                     else
@@ -313,7 +392,11 @@ namespace MeteoDome
 
             if (power[5] & power[6])
             {
-                void Action() => label_Dome_Power.Text = @"Power: on";
+                void Action()
+                {
+                    label_Dome_Power.Text = @"Power: on";
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
@@ -323,7 +406,11 @@ namespace MeteoDome
             }
             else if (power[5])
             {
-                void Action() => label_Dome_Power.Text = @"Power: only north";
+                void Action()
+                {
+                    label_Dome_Power.Text = @"Power: only north";
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
@@ -332,8 +419,12 @@ namespace MeteoDome
                 // msg = "Запитан только северный мотор";
             }
             else if (power[6])
-            {   
-                void Action() => label_Dome_Power.Text = @"Power: only south";
+            {
+                void Action()
+                {
+                    label_Dome_Power.Text = @"Power: only south";
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
@@ -343,7 +434,11 @@ namespace MeteoDome
             }
             else
             {
-                void Action() => label_Dome_Power.Text = @"Power: off";
+                void Action()
+                {
+                    label_Dome_Power.Text = @"Power: off";
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
@@ -354,7 +449,11 @@ namespace MeteoDome
 
             if (dome[0])
             {
-                void Action() => label_Motor_North.Text = @"Motor north: closing";
+                void Action()
+                {
+                    label_Motor_North.Text = @"Motor north: closing";
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
@@ -364,7 +463,11 @@ namespace MeteoDome
             }
             else if (dome[1])
             {
-                void Action() => label_Motor_North.Text = @"Motor north: opening";
+                void Action()
+                {
+                    label_Motor_North.Text = @"Motor north: opening";
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
@@ -372,9 +475,14 @@ namespace MeteoDome
                 label_Motor_North.ForeColor = Color.Green;
                 // msg = "Северный мотор открывает крышу";
             }
+
             if (dome[2])
             {
-                void Action() => label_Motor_South.Text = @"Motor south: closing";
+                void Action()
+                {
+                    label_Motor_South.Text = @"Motor south: closing";
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
@@ -384,7 +492,11 @@ namespace MeteoDome
             }
             else if (dome[3])
             {
-                void Action() => label_Motor_South.Text = @"Motor south: opening";
+                void Action()
+                {
+                    label_Motor_South.Text = @"Motor south: opening";
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
@@ -392,9 +504,14 @@ namespace MeteoDome
                 label_Motor_South.ForeColor = Color.Green;
                 // msg = "Южный мотор открывает крышу";
             }
+
             if (!(dome[0] | dome[1]))
             {
-                void Action() => label_Motor_North.Text = @"Motor north: run down";
+                void Action()
+                {
+                    label_Motor_North.Text = @"Motor north: run down";
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
@@ -402,10 +519,14 @@ namespace MeteoDome
                 label_Motor_North.ForeColor = Color.Red;
                 Action();
             }
-            
+
             if (!(dome[2] | dome[3]))
             {
-                void Action() => label_Motor_South.Text = @"Motor south: run down";
+                void Action()
+                {
+                    label_Motor_South.Text = @"Motor south: run down";
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
@@ -414,14 +535,14 @@ namespace MeteoDome
 
                 Action();
             }
-            
+
             if (dome[5])
             {
                 label_Shutter_North.Invoke((MethodInvoker) delegate
                 {
                     label_Shutter_North.Text = @"Shutter north: opened";
                 });
-                
+
                 label_Shutter_North.ForeColor = Color.Green;
             }
             else if (dome[4])
@@ -440,8 +561,9 @@ namespace MeteoDome
                 });
                 label_Shutter_North.ForeColor = Color.DarkOrange;
             }
+
             _isShutterNorthOpen = dome[5];
-            
+
             if (dome[7])
             {
                 label_Shutter_South.Invoke((MethodInvoker) delegate
@@ -466,11 +588,16 @@ namespace MeteoDome
                 });
                 label_Shutter_South.ForeColor = Color.DarkOrange;
             }
+
             _isShutterSouthOpen = dome[7];
 
             if (!buttons[4] & !buttons[5])
             {
-                void Action() => label_butt_north.Text = @"Button north: not pressed";
+                void Action()
+                {
+                    label_butt_north.Text = @"Button north: not pressed";
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
@@ -478,7 +605,11 @@ namespace MeteoDome
             }
             else if (buttons[4])
             {
-                void Action() => label_butt_north.Text = @"Button north: closing";
+                void Action()
+                {
+                    label_butt_north.Text = @"Button north: closing";
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
@@ -486,7 +617,11 @@ namespace MeteoDome
             }
             else
             {
-                void Action() => label_butt_north.Text = @"Button north: opening";
+                void Action()
+                {
+                    label_butt_north.Text = @"Button north: opening";
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
@@ -495,7 +630,11 @@ namespace MeteoDome
 
             if (!buttons[6] & !buttons[7])
             {
-                void Action() => label_butt_south.Text = @"Button south: not pressed";
+                void Action()
+                {
+                    label_butt_south.Text = @"Button south: not pressed";
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
@@ -503,7 +642,11 @@ namespace MeteoDome
             }
             else if (buttons[6])
             {
-                void Action() => label_butt_south.Text = @"Button south: closing";
+                void Action()
+                {
+                    label_butt_south.Text = @"Button south: closing";
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
@@ -511,7 +654,11 @@ namespace MeteoDome
             }
             else
             {
-                void Action() => label_butt_south.Text = @"Button south: opening";
+                void Action()
+                {
+                    label_butt_south.Text = @"Button south: opening";
+                }
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
@@ -560,7 +707,7 @@ namespace MeteoDome
             if (_sunZd < ZdFlat)
             {
                 // sunny
-                stop_obs(); 
+                stop_obs();
                 _isWeatherGood = -1;
                 return;
             }
@@ -630,8 +777,8 @@ namespace MeteoDome
         private void open_north()
         {
             // if (_isShutterNorthOpen) return;
-            
-            
+
+
             if (_serialDevices.Power[5])
             {
                 label_Shutter_North.Text = @"Shutter north: running";
@@ -805,7 +952,7 @@ namespace MeteoDome
                         _logger.AddLogEntry("Stop north");
                         break;
                 }
-            
+
             if (!checkBoxSouth.Checked) return;
             switch (comboBox_Dome.Text)
             {
@@ -845,13 +992,9 @@ namespace MeteoDome
             };
 
             while (true)
-            {
                 try
                 {
-                    if (!_work)
-                    {
-                        break;
-                    }
+                    if (!_work) break;
                     listenSocket.Start();
                     _logger.AddLogEntry(@"Сервер запущен. Ожидание подключений...");
                     var tcpClient = listenSocket.AcceptTcpClient();
@@ -868,15 +1011,9 @@ namespace MeteoDome
                     // получаем сообщение
                     while (tcpClient.Client.Connected)
                     {
-                        if (!_work)
-                        {
-                            break;
-                        }
+                        if (!_work) break;
                         var get = "";
-                        if (stream.CanRead)
-                        {
-                            get = streamReader.ReadLine();
-                        }
+                        if (stream.CanRead) get = streamReader.ReadLine();
 
                         if (get == "stop" || _br)
                         {
@@ -884,6 +1021,7 @@ namespace MeteoDome
                             listenSocket.Stop();
                             break;
                         }
+
                         switch (get)
                         {
                             case "sky":
@@ -945,7 +1083,6 @@ namespace MeteoDome
                     listenSocket.Stop();
                     break;
                 }
-            }
         }
 
         private void numericUpDown_timeout_north_KeyPress(object sender, KeyPressEventArgs e)
@@ -974,6 +1111,7 @@ namespace MeteoDome
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             _serialDevices.Close_Port();
+            _serialDevices.Dispose();
             timer1.Stop();
             _work = false;
         }

@@ -63,5 +63,3 @@ D:\RoboPhot Software\MeteoDome\MeteoDome\obj\Debug\MeteoDome.csproj.CoreCompileI
 D:\RoboPhot Software\MeteoDome\MeteoDome\obj\Debug\MeteoDome.csproj.CopyComplete
 D:\RoboPhot Software\MeteoDome\MeteoDome\obj\Debug\MeteoDome.exe
 D:\RoboPhot Software\MeteoDome\MeteoDome\obj\Debug\MeteoDome.pdb
-D:\RoboPhot Software\MeteoDome\MeteoDome\bin\Debug\System.Threading.Tasks.Dataflow.dll
-D:\RoboPhot Software\MeteoDome\MeteoDome\bin\Debug\System.Threading.Tasks.Dataflow.xml

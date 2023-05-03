@@ -472,9 +472,11 @@
             // 
             this.logBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.logBox.FormattingEnabled = true;
+            this.logBox.HorizontalScrollbar = true;
             this.logBox.ItemHeight = 20;
             this.logBox.Location = new System.Drawing.Point(5, 329);
             this.logBox.Name = "logBox";
+            this.logBox.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.logBox.Size = new System.Drawing.Size(875, 184);
             this.logBox.TabIndex = 3;
             // 

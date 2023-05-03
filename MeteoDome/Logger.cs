@@ -31,7 +31,6 @@ namespace MeteoDome
                         _logBox.Items.Insert(0, $"{DateTime.UtcNow:G} Logs have been saved and cleaned");
                     });
                 }
-
             }
 
             try
@@ -40,10 +39,7 @@ namespace MeteoDome
             }
             catch
             {
-                _logBox.Invoke((MethodInvoker) delegate
-                {
-                    _logBox.Items.Insert(0, $"{DateTime.UtcNow:G} {entry}");
-                });
+                _logBox.Invoke((MethodInvoker) delegate { _logBox.Items.Insert(0, $"{DateTime.UtcNow:G} {entry}"); });
             }
         }
 
