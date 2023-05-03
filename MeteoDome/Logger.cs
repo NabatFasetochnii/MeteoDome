@@ -18,15 +18,27 @@ namespace MeteoDome
             if (_logBox.Items.Count >= 1024)
             {
                 SaveLogs();
-                _logBox.Items.Clear();
-                _logBox.Items.Insert(0, $"{DateTime.UtcNow:G} Logs have been saved and cleaned");
+                try
+                {
+                    _logBox.Items.Clear();
+                    _logBox.Items.Insert(0, $"{DateTime.UtcNow:G} Logs have been saved and cleaned");
+                }
+                catch
+                {
+                    _logBox.Invoke((MethodInvoker) delegate
+                    {
+                        _logBox.Items.Clear();
+                        _logBox.Items.Insert(0, $"{DateTime.UtcNow:G} Logs have been saved and cleaned");
+                    });
+                }
+
             }
 
             try
             {
                 _logBox.Items.Insert(0, $"{DateTime.UtcNow:G} {entry}");
             }
-            catch (Exception e)
+            catch
             {
                 _logBox.Invoke((MethodInvoker) delegate
                 {

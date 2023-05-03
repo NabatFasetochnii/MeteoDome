@@ -137,29 +137,30 @@ namespace MeteoDome
         }
 
         //send command without answer
-        public void Write2Serial(string command)
+        private void Write2Serial(string command)
         {
-            if (!_serialPort.IsOpen || !TransmissionEnabled) return;
-            if (command=="")
+            try
             {
+                if (!_serialPort.IsOpen || !TransmissionEnabled) return;
+                command += ';';
+                if (command[1] == 'r' || command[1] == 's') //if run command
+                {
+                    TransmissionEnabled = false;
+                    _serialPort.WriteLine(command);
+                    TransmissionEnabled = true;
+                }
+                if (command[1] == 'g') //if question
+                {
+                    _serialPort.DiscardInBuffer(); //clear input buffer
+                    _serialPort.WriteLine(command); //send question
+                    TransmissionEnabled = false; //disable transmission of next command
+                    ComTimer.Start(); //start 1000 ms timer for waiting
+                }
+            }
+            catch (IndexOutOfRangeException e)
+            {
+                Logger.AddLogEntry(e.ToString());
                 Logger.AddLogEntry("Magic in Write2Serial, empty command");
-                return;
-            }
-            command += ';';
-            if (command[1] == 'r' || command[1] == 's') //if run command
-            {
-                TransmissionEnabled = false;
-                _serialPort.WriteLine(command);
-                // Logger.AddLogEntry("Send:" + command);
-                TransmissionEnabled = true;
-            }
-
-            if (command[1] == 'g') //if question
-            {
-                _serialPort.DiscardInBuffer(); //clear input buffer
-                _serialPort.WriteLine(command); //send question
-                TransmissionEnabled = false; //disable transmission of next command
-                ComTimer.Start(); //start 1000 ms timer for waiting
             }
         }
 

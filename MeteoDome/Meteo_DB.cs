@@ -306,7 +306,6 @@ namespace MeteoDome
                     // ignored
                 }
             }
-
             return result;
         }
 

@@ -417,34 +417,53 @@ namespace MeteoDome
             
             if (dome[5])
             {
-                label_Shutter_North.Text = @"Shutter north: opened";
+                label_Shutter_North.Invoke((MethodInvoker) delegate
+                {
+                    label_Shutter_North.Text = @"Shutter north: opened";
+                });
+                
                 label_Shutter_North.ForeColor = Color.Green;
             }
             else if (dome[4])
             {
-                label_Shutter_North.Text = @"Shutter north: closed";
+                label_Shutter_North.Invoke((MethodInvoker) delegate
+                {
+                    label_Shutter_North.Text = @"Shutter north: closed";
+                });
                 label_Shutter_North.ForeColor = Color.Red;
             }
             else
             {
-                label_Shutter_North.Text = @"Shutter north: running";
+                label_Shutter_North.Invoke((MethodInvoker) delegate
+                {
+                    label_Shutter_North.Text = @"Shutter north: running";
+                });
                 label_Shutter_North.ForeColor = Color.DarkOrange;
             }
             _isShutterNorthOpen = dome[5];
             
             if (dome[7])
             {
-                label_Shutter_South.Text = @"Shutter south: opened";
+                label_Shutter_South.Invoke((MethodInvoker) delegate
+                {
+                    label_Shutter_South.Text = @"Shutter south: opened";
+                });
                 label_Shutter_South.ForeColor = Color.Green;
             }
             else if (dome[6])
             {
-                label_Shutter_South.Text = @"Shutter south: closed";
+                label_Shutter_South.Invoke((MethodInvoker) delegate
+                {
+                    label_Shutter_South.Text = @"Shutter south: closed";
+                });
                 label_Shutter_South.ForeColor = Color.Red;
             }
             else
             {
-                label_Shutter_South.Text = @"Shutter south: running";
+                label_Shutter_South.Invoke((MethodInvoker) delegate
+                {
+                    label_Shutter_South.Text = @"Shutter south: running";
+                });
                 label_Shutter_South.ForeColor = Color.DarkOrange;
             }
             _isShutterSouthOpen = dome[7];
