@@ -4,107 +4,113 @@ using Npgsql;
 
 namespace MeteoDome
 {
-    public class Meteo_DB
+    public class MeteoDb
     {
         private static readonly double Latitude = 57.036537;
         private static readonly double Longitude = 59.545735;
+        private readonly Logger _logger;
+        public MeteoDb(Logger logger)
+        {
+            _logger = logger;
+        }
 
         ////globals
-        public string services_conn_string =
+        private string ServicesConnString =
             "Server=192.168.240.26;Port=5432;User Id=services;Password=services; Database=services;";
 
-        private static double UT2JD(DateTime UT)
+        private static double Ut2Jd(DateTime ut)
         {
-            var zero_jd = DateTime.ParseExact("1858-11-17 00:00:00.0", "yyyy-MM-dd HH:mm:ss.f",
+            var zeroJd = DateTime.ParseExact("1858-11-17 00:00:00.0", "yyyy-MM-dd HH:mm:ss.f",
                 CultureInfo.InvariantCulture);
-            var JD = UT - zero_jd;
-            JD = JD.Add(TimeSpan.FromDays(2400000.5));
-            return JD.TotalDays;
+            var jd = ut - zeroJd;
+            jd = jd.Add(TimeSpan.FromDays(2400000.5));
+            return jd.TotalDays;
         }
 
-        private static double JD2LST(double JD, double Longitude)
+        private static double Jd2Lst(double jd, double longitude)
         {
-            var JD2000 = 2451545.0;
+            var jd2000 = 2451545.0;
             //double JD = UT2JD(UT);
-            var T0 = JD - JD2000;
-            var T = T0 / 36525;
+            var t0 = jd - jd2000;
+            var T = t0 / 36525;
             //Compute GST in seconds.
-            var theta = 280.46061837 + 360.98564736629 * T0 + T * T * 0.000387933 - T * T * T / 38710000.0;
+            var theta = 280.46061837 + 360.98564736629 * t0 + T * T * 0.000387933 - T * T * T / 38710000.0;
             //Compute LST in hours
-            var LST_H = (theta + Longitude) / 15.0;
-            LST_H = LST_H - 24 * Math.Floor(LST_H / 24);
+            var lstH = (theta + longitude) / 15.0;
+            lstH -= 24 * Math.Floor(lstH / 24);
             //TimeSpan LST = TimeSpan.FromHours(LST_H);
-            return LST_H;
+            return lstH;
         }
 
-        private static double[] Get_Sun(double JD, double LSTh, double Latitude)
+        private static double[] Get_Sun(double jd, double lsTh, double latitude)
         {
-            var Sun = new double[2];
-            var N = JD - 2451545.0; //get number of days after 1J2000
-            var L = 280.460 + 0.9856474 * N; //get mean longitude of the Sun (degrees)
-            var g = 357.528 + 0.9856003 * N; //get mean anomaly of the Sun
+            var sun = new double[2];
+            var n = jd - 2451545.0; //get number of days after 1J2000
+            var l = 280.460 + 0.9856474 * n; //get mean longitude of the Sun (degrees)
+            var g = 357.528 + 0.9856003 * n; //get mean anomaly of the Sun
 
             //put L and g in the range from 0 to 360
-            if (L > 360) L = L - Math.Floor(L / 360) * 360.0;
-            if (L < 0) L = L - Math.Floor(L / 360) * 360.0 + 360;
+            if (l > 360) l = l - Math.Floor(l / 360) * 360.0;
+            if (l < 0) l = l - Math.Floor(l / 360) * 360.0 + 360;
             if (g > 360) g = g - Math.Floor(g / 360) * 360.0;
             if (g < 0) g = g - Math.Floor(g / 360) * 360.0 + 360;
 
-            var Lambda = L + 1.915 * Math.Sin(g / (180.0 / Math.PI)) + 0.02 * Math.Sin(2 * g / (180.0 / Math.PI));
+            var lambda = l + 1.915 * Math.Sin(g / (180.0 / Math.PI)) + 0.02 * Math.Sin(2 * g / (180.0 / Math.PI));
 
             //calculation of equatorial coordinates
-            var e = 23.439 - N * 0.0000004; //obliquity of the ecliptic (degrees)
-            var Ra = Math.Atan2(Math.Cos(e / (180.0 / Math.PI)) * Math.Sin(Lambda / (180.0 / Math.PI)),
-                Math.Cos(Lambda / (180.0 / Math.PI)));
-            var Dec = Math.Asin(Math.Sin(e / (180.0 / Math.PI)) * Math.Sin(Lambda / (180.0 / Math.PI)));
+            var e = 23.439 - n * 0.0000004; //obliquity of the ecliptic (degrees)
+            var ra = Math.Atan2(Math.Cos(e / (180.0 / Math.PI)) * Math.Sin(lambda / (180.0 / Math.PI)),
+                Math.Cos(lambda / (180.0 / Math.PI)));
+            var dec = Math.Asin(Math.Sin(e / (180.0 / Math.PI)) * Math.Sin(lambda / (180.0 / Math.PI)));
 
 
             //calculation of hour angle of sun
-            var HA = LSTh - Ra * (180.0 / Math.PI) / 15.0; //(hours)
+            var ha = lsTh - ra * (180.0 / Math.PI) / 15.0; //(hours)
             //а зачем нам передавать сюда LSTh, если мы можем функцию вызвать?
             //Или она уже была посчитана и проще её же и передать?
-            if (HA < 0) HA = HA + 24.0;
+            if (ha < 0) ha += 24.0;
 
             //calculation of sun Zenith distance (ZD)
-            var cosZD = Math.Sin(Latitude / (180.0 / Math.PI)) * Math.Sin(Dec) +
-                        Math.Cos(Latitude / (180.0 / Math.PI)) * Math.Cos(Dec) *
-                        Math.Cos(HA * 15.0 / (180.0 / Math.PI));
-            var ZD = Math.Acos(cosZD);
+            var cosZd = Math.Sin(latitude / (180.0 / Math.PI)) * Math.Sin(dec) +
+                        Math.Cos(latitude / (180.0 / Math.PI)) * Math.Cos(dec) *
+                        Math.Cos(ha * 15.0 / (180.0 / Math.PI));
+            var zd = Math.Acos(cosZd);
 
             //calculation of sun Azimuth (AZ)
-            var cosAZ = (Math.Sin(Dec) - Math.Cos(ZD) * Math.Sin(Latitude / (180.0 / Math.PI))) /
-                        (Math.Sin(ZD) * Math.Cos(Latitude / (180.0 / Math.PI)));
-            var AZ = Math.Acos(cosAZ);
-            var AZd = AZ * (180.0 / Math.PI); //radians to degrees
-            if (HA < 12) AZd = 360 - AZd;
+            var cosAz = (Math.Sin(dec) - Math.Cos(zd) * Math.Sin(latitude / (180.0 / Math.PI))) /
+                        (Math.Sin(zd) * Math.Cos(latitude / (180.0 / Math.PI)));
+            var az = Math.Acos(cosAz);
+            var aZd = az * (180.0 / Math.PI); //radians to degrees
+            if (ha < 12) aZd = 360 - aZd;
 
-            Sun[0] = AZd;
-            Sun[1] = ZD * (180.0 / Math.PI);
-            return Sun;
+            sun[0] = aZd;
+            sun[1] = zd * (180.0 / Math.PI);
+            return sun;
         }
 
         //return Sun zenith distance (degree)
         public double Sun_ZD()
-        {
-            var JD = UT2JD(DateTime.Now.ToUniversalTime());
-            var LSTh = JD2LST(JD, Longitude);
-            var Sun = Get_Sun(JD, LSTh, Latitude);
+        {   
+            
+            var jd = Ut2Jd(DateTime.Now.ToUniversalTime());
+            var lsTh = Jd2Lst(jd, Longitude);
+            var sun = Get_Sun(jd, lsTh, Latitude);
 
-            return Sun[1];
+            return sun[1];
         }
 
         //return [-1,-1] not connected, [0,-1] old data, [extinction, extinction_std] good data
         public double[] Get_Sky_VIS()
         {
             double dT = 0;
-            var Result = new double[] {-1, -1};
+            var result = new double[] {-1, -1};
 
-            using (var conn = new NpgsqlConnection(services_conn_string))
+            using (var conn = new NpgsqlConnection(ServicesConnString))
             {
                 try
                 {
                     conn.Open();
-                    Result[0] = 0; //connected
+                    result[0] = 0; //connected
                     var qwery = "SELECT EXTRACT(EPOCH FROM (now() - MAX(timestamp))) FROM cloud_cam;";
                     var command = new NpgsqlCommand(qwery, conn);
                     var dr = command.ExecuteReader();
@@ -113,28 +119,28 @@ namespace MeteoDome
 
                     if (dT < 180)
                     {
-                        Result[1] = 0; //time ok
+                        result[1] = 0; //time ok
                         qwery =
                             "SELECT AVG(mean_ext), STDDEV_SAMP(mean_ext) FROM cloud_cam WHERE timestamp > now() - '10 minutes'::interval;";
                         command = new NpgsqlCommand(qwery, conn);
                         dr = command.ExecuteReader();
                         while (dr.Read())
                         {
-                            Result[0] = Convert.ToDouble(dr[0]);
-                            Result[1] = Convert.ToDouble(dr[1]);
+                            result[0] = Convert.ToDouble(dr[0]);
+                            result[1] = Convert.ToDouble(dr[1]);
                         }
 
                         dr.Close();
 
                         qwery = "SELECT AVG(mean_ext), STDDEV_SAMP(mean_ext) FROM cloud_cam WHERE (mean_ext) >= " +
-                                (Result[0] - 2 * Result[1]) + " AND (mean_ext) <= " + (Result[0] + 2 * Result[1]) +
+                                (result[0] - 2 * result[1]) + " AND (mean_ext) <= " + (result[0] + 2 * result[1]) +
                                 " AND timestamp > now() - '10 minutes'::interval;";
                         command = new NpgsqlCommand(qwery, conn);
                         dr = command.ExecuteReader();
                         while (dr.Read())
                         {
-                            Result[0] = Convert.ToDouble(dr[0]);
-                            Result[1] = Convert.ToDouble(dr[1]);
+                            result[0] = Convert.ToDouble(dr[0]);
+                            result[1] = Convert.ToDouble(dr[1]);
                         }
 
                         dr.Close();
@@ -142,27 +148,28 @@ namespace MeteoDome
 
                     conn.Close();
                 }
-                catch
+                catch(Exception e)
                 {
-                    // ignored
+                    _logger.AddLogEntry(e.Message);
+                    _logger.AddLogEntry("MeteoDB: ERROR SKY VIS");
                 }
             }
 
-            return Result;
+            return result;
         }
 
         //return [-1,-1] not connected, [0,-1] old data, [sky_tmp, sky_tmp_std] good data
         public double[] Get_Sky_IR()
         {
             double dT = 0;
-            var Result = new double[2] {-1, -1};
+            var result = new double[] {-1, -1};
 
-            using (var conn = new NpgsqlConnection(services_conn_string))
+            using (var conn = new NpgsqlConnection(ServicesConnString))
             {
                 try
                 {
                     conn.Open();
-                    Result[0] = 0; //connected
+                    result[0] = 0; //connected
                     var qwery = "SELECT EXTRACT(EPOCH FROM (now() - MAX(timestamp))) FROM allsky_mlx;";
                     var command = new NpgsqlCommand(qwery, conn);
                     var dr = command.ExecuteReader();
@@ -171,7 +178,7 @@ namespace MeteoDome
 
                     if (dT < 120)
                     {
-                        Result[1] = 0; //time ok
+                        result[1] = 0; //time ok
                         qwery =
                             "SELECT AVG(temp2-temp1), STDDEV_SAMP(temp2-temp1) FROM allsky_mlx " +
                             "WHERE timestamp > now() - '10 minutes'::interval;";
@@ -179,22 +186,23 @@ namespace MeteoDome
                         dr = command.ExecuteReader();
                         while (dr.Read())
                         {
-                            Result[0] = Convert.ToDouble(dr[0]);
-                            Result[1] = Convert.ToDouble(dr[1]);
+                            result[0] = Convert.ToDouble(dr[0]);
+                            result[1] = Convert.ToDouble(dr[1]);
                         }
 
                         dr.Close();
 
+                        // WARNING: Sensitive to decimal separator --- must be '.'
                         qwery =
                             "SELECT AVG(temp2-temp1), STDDEV_SAMP(temp2-temp1) FROM allsky_mlx WHERE (temp2 - temp1) >= " +
-                            (Result[0] - 2 * Result[1]) + " AND (temp2-temp1) <= " + (Result[0] + 2 * Result[1]) +
+                            (result[0] - 2 * result[1]) + " AND (temp2-temp1) <= " + (result[0] + 2 * result[1]) +
                             " AND timestamp > now() - '10 minutes'::interval;";
                         command = new NpgsqlCommand(qwery, conn);
                         dr = command.ExecuteReader();
                         while (dr.Read())
                         {
-                            Result[0] = Convert.ToDouble(dr[0]);
-                            Result[1] = Convert.ToDouble(dr[1]);
+                            result[0] = Convert.ToDouble(dr[0]);
+                            result[1] = Convert.ToDouble(dr[1]);
                         }
 
                         dr.Close();
@@ -202,28 +210,29 @@ namespace MeteoDome
 
                     conn.Close();
                 }
-                catch
+                catch (Exception e)
                 {
-                    // ignored
+                    _logger.AddLogEntry(e.Message);
+                    _logger.AddLogEntry("MeteoDB: ERROR SKY IR");
                 }
             }
 
-            return Result;
+            return result;
         }
 
         //return: -1 - not connected, 100 - old data, wind
         public double Get_Wind()
         {
             double dT = 0;
-            double Result = -1;
-            double A = 0, B = 0;
+            double result = -1;
+            double a = 0, b = 0;
 
-            using (var conn = new NpgsqlConnection(services_conn_string))
+            using (var conn = new NpgsqlConnection(ServicesConnString))
             {
                 try
                 {
                     conn.Open();
-                    Result = 0; //connected
+                    result = 0; //connected
                     var qwery = "SELECT EXTRACT(EPOCH FROM (now() - MAX(timestamp))) FROM boltwood;";
                     var command = new NpgsqlCommand(qwery, conn);
                     var dr = command.ExecuteReader();
@@ -232,37 +241,39 @@ namespace MeteoDome
 
                     if (dT < 120)
                     {
-                        Result = 100; //time ok
+                        result = 100; //time ok
                         qwery =
                             "SELECT AVG(wind), STDDEV_SAMP(wind) FROM boltwood WHERE timestamp > now() - '10 minutes'::interval;";
                         command = new NpgsqlCommand(qwery, conn);
                         dr = command.ExecuteReader();
                         while (dr.Read())
                         {
-                            A = Convert.ToDouble(dr[0]);
-                            B = Convert.ToDouble(dr[1]);
+                            a = Convert.ToDouble(dr[0]);
+                            b = Convert.ToDouble(dr[1]);
                         }
 
                         dr.Close();
 
-                        qwery = "SELECT AVG(wind), STDDEV_SAMP(wind) FROM boltwood WHERE wind >= " +
-                                (A - 2 * B) + " AND wind <= " + (A + 2 * B) +
+                        // WARNING: Sensitive to decimal separator --- must be '.'
+                        qwery = "SELECT AVG(wind), STDDEV_SAMP(wind) FROM boltwood WHERE (wind) >= " +
+                                (a - 2 * b) + " AND (wind) <= " + (a + 2 * b) +
                                 " AND timestamp > now() - '10 minutes'::interval;";
                         command = new NpgsqlCommand(qwery, conn);
                         dr = command.ExecuteReader();
-                        while (dr.Read()) Result = Convert.ToDouble(dr[0]);
+                        while (dr.Read()) result = Convert.ToDouble(dr[0]);
                         dr.Close();
                     }
 
                     conn.Close();
                 }
-                catch
+                catch (Exception e)
                 {
-                    // ignored
+                    _logger.AddLogEntry(e.Message);
+                    _logger.AddLogEntry("MeteoDB: ERROR WIND");
                 }
             }
 
-            return Result;
+            return result;
         }
 
         //return [-1,-1] not connected, [0,-1] old data, [seeing, seeing_extinction] good data
@@ -271,7 +282,7 @@ namespace MeteoDome
             double dT = 0;
             double[] result = {-1, -1};
 
-            using (var conn = new NpgsqlConnection(services_conn_string))
+            using (var conn = new NpgsqlConnection(ServicesConnString))
             {
                 try
                 {
@@ -301,9 +312,10 @@ namespace MeteoDome
 
                     conn.Close();
                 }
-                catch
+                catch (Exception e)
                 {
-                    // ignored
+                    _logger.AddLogEntry(e.Message);
+                    _logger.AddLogEntry("MeteoDB: ERROR SEEING");
                 }
             }
 

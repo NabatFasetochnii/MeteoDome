@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Drawing;
 using System.IO;
 using System.Net;
@@ -28,19 +29,20 @@ namespace MeteoDome
         // private static readonly Timer DomeTimer = new Timer(); //clock timer and status check timer
 
         ////globals for database
-        private readonly Meteo_DB _meteo = new Meteo_DB();
+        private readonly MeteoDb _meteo;
 
         ////globals for dome
         private readonly SerialDevices _serialDevices = new SerialDevices();
 
         // private int _counter;
         private bool _br;
-        private bool _isDomeOpen;
+        private bool _isDomeCanOpen;
         private bool _isFlat;
         private bool _isObsCanRun;
         private bool _isObsRunning;
         private bool _isShutterNorthOpen;
         private bool _isShutterSouthOpen;
+        private BitArray _dome = new BitArray(8);
         private int _isWeatherGood = -1;
         private double[] _seeing = {-1, -1};
         private double[] _skyIr = {-1, -1};
@@ -48,6 +50,7 @@ namespace MeteoDome
         private double _sunZd = -1;
         private double _wind = -1;
         private bool _work = true;
+        private readonly Thread _socketThread;
 
         public MainForm()
         {
@@ -55,6 +58,7 @@ namespace MeteoDome
 
             _logger = new Logger(logBox);
             _serialDevices.Logger = _logger;
+            _meteo = new MeteoDb(_logger);
 
             if (!Read_Cfg())
                 if (MessageBox.Show(@"Can't read config", @"OK", MessageBoxButtons.OK) == DialogResult.OK)
@@ -65,11 +69,19 @@ namespace MeteoDome
                     Environment.Exit(1);
             //create timer for main loop
             MeteoTimer.Elapsed += OnTimedEvent_Clock;
-            MeteoTimer.Interval = 5000;
+            MeteoTimer.Interval = 1000;
             MeteoTimer.Start();
 
-            var socketThread = new Thread(socket_manager);
-            socketThread.Start();
+            _socketThread = new Thread(socket_manager);
+            _socketThread.Start();
+        }
+        
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            _work = false;
+            _serialDevices.Dispose();
+            _socketThread.Abort();
+            timer1.Stop();
         }
 
         //one second timer for status and clock
@@ -92,10 +104,10 @@ namespace MeteoDome
             _wind = _meteo.Get_Wind(); // return wind, -1 - disconnected, 100 - old data
             _sunZd = _meteo.Sun_ZD(); //return Sun zenith distance (degree)
             if ((_skyVis[0] > 0) & (_skyVis[1] > 0))
-                _isObsCanRun = Meteo_DB.Get_Weather_Obs(_isObsCanRun, _skyVis[0], _skyVis[1]);
+                _isObsCanRun = MeteoDb.Get_Weather_Obs(_isObsCanRun, _skyVis[0], _skyVis[1]);
             if ((_skyIr[0] < -1) & (_skyIr[1] > 0) & (-1 < _wind) & (_wind < 100))
-                _isDomeOpen =
-                    Meteo_DB.Get_Weather_Dome(_isShutterNorthOpen & _isShutterSouthOpen, _skyIr[0], _skyIr[1], _wind);
+                _isDomeCanOpen =
+                    MeteoDb.Get_Weather_Dome(_isShutterNorthOpen & _isShutterSouthOpen, _skyIr[0], _skyIr[1], _wind);
         }
 
         private void SetMeteo()
@@ -266,7 +278,6 @@ namespace MeteoDome
                         Action2();
                     break;
                 default:
-
                     void Action3()
                     {
                         label_Wind.Text = @"Wind (m/s): " + _wind.ToString("00.0");
@@ -289,7 +300,7 @@ namespace MeteoDome
                 Invoke((Action) Action4);
             else
                 Action4();
-            check_cond();
+            UpdateWeatherLabel();
 
 
             if (checkBox_AutoDome.Checked) Autopilot();
@@ -306,7 +317,7 @@ namespace MeteoDome
                 Action5();
         }
 
-        private void check_cond()
+        private void UpdateWeatherLabel()
         {
             switch (_isWeatherGood)
             {
@@ -360,17 +371,20 @@ namespace MeteoDome
 
         private void Autopilot()
         {
-            if (_isDomeOpen)
+            if (_isDomeCanOpen & _sunZd > 92)
             {
                 open_dome();
-                if (_isObsCanRun) weather_choice();
+                if (_isObsCanRun)
+                {
+                    weather_choice();
+                }
             }
             else
             {
                 stop_obs();
             }
 
-            check_cond();
+            UpdateWeatherLabel();
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -384,11 +398,11 @@ namespace MeteoDome
         private void SetDome()
         {
             var power = _serialDevices.Power;
-            var dome = _serialDevices.Dome;
-            var buttons = _serialDevices.buttons;
-            var timeoutNorth = _serialDevices.timeout_north;
-            var timeoutSouth = _serialDevices.timeout_south;
-            var initflag = Convert.ToBoolean(_serialDevices.initflag);
+            _dome = _serialDevices.Dome;
+            var buttons = _serialDevices.Buttons;
+            var timeoutNorth = _serialDevices.TimeoutNorth;
+            var timeoutSouth = _serialDevices.TimeoutSouth;
+            var initflag = Convert.ToBoolean(_serialDevices.Initflag);
 
             if (power[5] & power[6])
             {
@@ -447,7 +461,7 @@ namespace MeteoDome
                 // msg = "Оба мотора без питания";
             }
 
-            if (dome[0])
+            if (_dome[0])
             {
                 void Action()
                 {
@@ -461,7 +475,7 @@ namespace MeteoDome
                 label_Motor_North.ForeColor = Color.Green;
                 // msg = "Северный мотор закрывает крышу";
             }
-            else if (dome[1])
+            else if (_dome[1])
             {
                 void Action()
                 {
@@ -476,7 +490,7 @@ namespace MeteoDome
                 // msg = "Северный мотор открывает крышу";
             }
 
-            if (dome[2])
+            if (_dome[2])
             {
                 void Action()
                 {
@@ -490,7 +504,7 @@ namespace MeteoDome
                 label_Motor_South.ForeColor = Color.Green;
                 // msg = "Южный мотор закрывает крышу";
             }
-            else if (dome[3])
+            else if (_dome[3])
             {
                 void Action()
                 {
@@ -505,7 +519,7 @@ namespace MeteoDome
                 // msg = "Южный мотор открывает крышу";
             }
 
-            if (!(dome[0] | dome[1]))
+            if (!(_dome[0] | _dome[1]))
             {
                 void Action()
                 {
@@ -520,7 +534,7 @@ namespace MeteoDome
                 Action();
             }
 
-            if (!(dome[2] | dome[3]))
+            if (!(_dome[2] | _dome[3]))
             {
                 void Action()
                 {
@@ -536,7 +550,7 @@ namespace MeteoDome
                 Action();
             }
 
-            if (dome[5])
+            if (_dome[5])
             {
                 label_Shutter_North.Invoke((MethodInvoker) delegate
                 {
@@ -545,7 +559,7 @@ namespace MeteoDome
 
                 label_Shutter_North.ForeColor = Color.Green;
             }
-            else if (dome[4])
+            else if (_dome[4])
             {
                 label_Shutter_North.Invoke((MethodInvoker) delegate
                 {
@@ -562,9 +576,9 @@ namespace MeteoDome
                 label_Shutter_North.ForeColor = Color.DarkOrange;
             }
 
-            _isShutterNorthOpen = dome[5];
+            _isShutterNorthOpen = _dome[5];
 
-            if (dome[7])
+            if (_dome[7])
             {
                 label_Shutter_South.Invoke((MethodInvoker) delegate
                 {
@@ -572,7 +586,7 @@ namespace MeteoDome
                 });
                 label_Shutter_South.ForeColor = Color.Green;
             }
-            else if (dome[6])
+            else if (_dome[6])
             {
                 label_Shutter_South.Invoke((MethodInvoker) delegate
                 {
@@ -589,7 +603,7 @@ namespace MeteoDome
                 label_Shutter_South.ForeColor = Color.DarkOrange;
             }
 
-            _isShutterSouthOpen = dome[7];
+            _isShutterSouthOpen = _dome[7];
 
             if (!buttons[4] & !buttons[5])
             {
@@ -730,7 +744,7 @@ namespace MeteoDome
             _isFlat = false;
             if (_isObsRunning) return;
             _logger.AddLogEntry("Observation start");
-            open_dome();
+            // open_dome();
             _isObsRunning = true;
         }
 
@@ -739,15 +753,15 @@ namespace MeteoDome
             //TODO FLAT
             //obs flat
             _isFlat = true;
-            open_dome();
+            // open_dome();
         }
 
         private void stop_obs()
         {
             _isFlat = false;
+            close_dome();
             if (!_isObsRunning) return;
             _logger.AddLogEntry("Observation stop");
-            close_dome();
             _isObsRunning = false;
             // Park();
         }
@@ -761,16 +775,22 @@ namespace MeteoDome
 
         private void open_dome()
         {
-            open_south();
-            open_north();
-            update_dome();
+            if ((!_dome[1] & !_dome[5]) | (!_dome[3] & !_dome[7]))
+            {
+                open_south();
+                open_north();
+                update_dome();
+            }
         }
 
         private void close_dome()
         {
-            close_north();
-            close_south();
-            update_dome();
+            if ((!_dome[0] & !_dome[4]) | (!_dome[2] & !_dome[6]))
+            {
+                close_north();
+                close_south();
+                update_dome();
+            }
         }
 
         //TODO opening/closing
@@ -1106,14 +1126,6 @@ namespace MeteoDome
         private void button_disconnect_Click(object sender, EventArgs e)
         {
             _br = true;
-        }
-
-        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            _serialDevices.Close_Port();
-            _serialDevices.Dispose();
-            timer1.Stop();
-            _work = false;
         }
     }
 }

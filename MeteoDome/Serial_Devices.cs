@@ -12,16 +12,17 @@ namespace MeteoDome
     {
         private static readonly Timer ComTimer = new Timer(); //timer for Serial port communication delay
 
+        private long _magicCounter = 0;
         // private BufferBlock<Consumer> consumers = new BufferBlock<Consumer>();
-        private static readonly List<string> waiters = new List<string>();
+        private static readonly List<string> Waiters = new List<string>();
         private readonly SerialPort _serialPort = new SerialPort();
         private Thread _proc;
-        public BitArray buttons = new BitArray(8, false);
+        public BitArray Buttons = new BitArray(8, false);
 
         //serial port
         public string ComId;
 
-        private readonly string[] commands =
+        private readonly string[] _commands =
         {
             "1gcp",
             "1gcb",
@@ -35,17 +36,17 @@ namespace MeteoDome
 
         public BitArray Dome = new BitArray(8, false);
 
-        public int initflag;
+        public int Initflag;
         public Logger Logger;
 
         public BitArray Power = new BitArray(8, false);
 
         // public string Power = "";
-        public BitArray timeout = new BitArray(8, false);
+        public BitArray Timeout = new BitArray(8, false);
 
         // public string timeout = "";
-        public int timeout_north = 120;
-        public int timeout_south = 120;
+        public int TimeoutNorth = 120;
+        public int TimeoutSouth = 120;
         public bool TransmissionEnabled;
 
         //protected virtual void Dispose(bool disposing)
@@ -58,6 +59,7 @@ namespace MeteoDome
 
         public void Dispose()
         {
+            Close_Port();
             _serialPort.Dispose();
             _proc.Abort();
         }
@@ -74,9 +76,9 @@ namespace MeteoDome
                 while (true)
                 {
                     if (!TransmissionEnabled) continue;
-                    if (waiters.Count == 0) continue;
-                    Write2Serial(waiters[0]);
-                    waiters.RemoveAt(0);
+                    if (Waiters.Count == 0) continue;
+                    Write2Serial(Waiters[0]);
+                    Waiters.RemoveAt(0);
                 }
             });
             _proc.Start();
@@ -93,7 +95,7 @@ namespace MeteoDome
                 _serialPort.Open();
                 if (!_serialPort.IsOpen) return;
                 _serialPort.ReadTimeout = 500;
-                _serialPort.NewLine = "\0";
+                _serialPort.NewLine = "\0";  // Serial commands separator
                 _serialPort.ReceivedBytesThreshold = 6;
                 _serialPort.DiscardInBuffer(); // чистить порт после открытия
                 Logger.AddLogEntry("SerialPort opened");
@@ -124,12 +126,12 @@ namespace MeteoDome
 
         public void UpDate()
         {
-            foreach (var command in commands) AddTask(command);
+            foreach (var command in _commands) AddTask(command);
         }
 
         public void AddTask(string com)
         {
-            if (!waiters.Contains(com)) waiters.Add(com);
+            if (!Waiters.Contains(com)) Waiters.Add(com);
         }
 
         //send command without answer
@@ -138,7 +140,7 @@ namespace MeteoDome
             try
             {
                 if (!_serialPort.IsOpen || !TransmissionEnabled) return;
-                command += ';';
+                // command += ';';
                 if (command[1] == 'r' || command[1] == 's') //if run command
                 {
                     TransmissionEnabled = false;
@@ -154,10 +156,12 @@ namespace MeteoDome
                     ComTimer.Start(); //start 1000 ms timer for waiting
                 }
             }
-            catch (IndexOutOfRangeException e)
+            catch (NullReferenceException e)
             {
-                Logger.AddLogEntry(e.ToString());
-                Logger.AddLogEntry("Magic in Write2Serial, empty command");
+                // FIXME: Sometimes program tries to send empty command
+                //        Bad command queue management maybe?
+                // Logger.AddLogEntry(e.ToString());
+                Logger.AddLogEntry($"Magic #{++_magicCounter} in Write2Serial, empty command");
             }
         }
 
@@ -224,22 +228,22 @@ namespace MeteoDome
                         break;
                     case "acb":
                         // запрос состояния кнопок//	1gcb;//	1acb=[byte];//	возвращает байт u  u  u  u  nc no sc so
-                        buttons = bits;
+                        Buttons = bits;
                         break;
                     case "act":
                         // запрос состояния таймаутов//1gct;//1act=[byte];//	возвращает байт u  u  u  u  nc no sc so
-                        timeout = bits;
+                        Timeout = bits;
                         break;
                     case "ats":
                         // запрос значения южного таймаута			//	1gts;	//	1ats=[int];		//	возвращает значение в секундах
-                        timeout_south = t;
+                        TimeoutSouth = t;
                         break;
                     case "atn":
                         //запрос значения северного таймаута		//	1gtn;	//	1atn=[int];		//	возвращает значение в секундах
-                        timeout_north = t;
+                        TimeoutNorth = t;
                         break;
                     case "ain":
-                        initflag = int.Parse(indata.Substring(5, 1));
+                        Initflag = int.Parse(indata.Substring(5, 1));
                         break;
                 }
             }

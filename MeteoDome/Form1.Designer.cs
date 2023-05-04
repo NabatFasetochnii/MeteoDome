@@ -418,9 +418,9 @@
             this.checkBox_AutoDome.Location = new System.Drawing.Point(208, 76);
             this.checkBox_AutoDome.Margin = new System.Windows.Forms.Padding(1);
             this.checkBox_AutoDome.Name = "checkBox_AutoDome";
-            this.checkBox_AutoDome.Size = new System.Drawing.Size(143, 21);
+            this.checkBox_AutoDome.Size = new System.Drawing.Size(142, 21);
             this.checkBox_AutoDome.TabIndex = 2;
-            this.checkBox_AutoDome.Text = "Auto dome closing";
+            this.checkBox_AutoDome.Text = "Auto dome control\r\n";
             this.checkBox_AutoDome.UseVisualStyleBackColor = true;
             this.checkBox_AutoDome.CheckedChanged += new System.EventHandler(this.checkBox_AutoDome_CheckedChanged);
             // 
