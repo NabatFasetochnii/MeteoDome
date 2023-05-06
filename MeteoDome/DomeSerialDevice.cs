@@ -8,11 +8,11 @@ using Timer = System.Timers.Timer;
 
 namespace MeteoDome
 {
-    public class SerialDevices
+    public class DomeSerialDevice
     {
         private static readonly Timer ComTimer = new Timer(); //timer for Serial port communication delay
 
-        private long _magicCounter = 0;
+        // private long _magicCounter = 0;
         // private BufferBlock<Consumer> consumers = new BufferBlock<Consumer>();
         private static readonly List<string> Waiters = new List<string>();
         private readonly SerialPort _serialPort = new SerialPort();
@@ -42,20 +42,12 @@ namespace MeteoDome
         public BitArray Power = new BitArray(8, false);
 
         // public string Power = "";
-        public BitArray Timeout = new BitArray(8, false);
+        // public BitArray Timeout = new BitArray(8, false);
 
         // public string timeout = "";
         public int TimeoutNorth = 120;
         public int TimeoutSouth = 120;
         public bool TransmissionEnabled;
-
-        //protected virtual void Dispose(bool disposing)
-        //{
-        //    if (disposing)
-        //    {
-        //        SerialPort.Dispose();
-        //    }
-        //}
 
         public void Dispose()
         {
@@ -139,8 +131,8 @@ namespace MeteoDome
         {
             try
             {
+                if (command is null) return;
                 if (!_serialPort.IsOpen || !TransmissionEnabled) return;
-                // command += ';';
                 if (command[1] == 'r' || command[1] == 's') //if run command
                 {
                     TransmissionEnabled = false;
@@ -160,8 +152,8 @@ namespace MeteoDome
             {
                 // FIXME: Sometimes program tries to send empty command
                 //        Bad command queue management maybe?
-                // Logger.AddLogEntry(e.ToString());
-                Logger.AddLogEntry($"Magic #{++_magicCounter} in Write2Serial, empty command");
+                Logger.AddLogEntry(e.ToString());
+                // Logger.AddLogEntry($"Magic #{++_magicCounter} in Write2Serial, empty command");
             }
         }
 
@@ -230,10 +222,10 @@ namespace MeteoDome
                         // запрос состояния кнопок//	1gcb;//	1acb=[byte];//	возвращает байт u  u  u  u  nc no sc so
                         Buttons = bits;
                         break;
-                    case "act":
-                        // запрос состояния таймаутов//1gct;//1act=[byte];//	возвращает байт u  u  u  u  nc no sc so
-                        Timeout = bits;
-                        break;
+                    // case "act":
+                    //     // запрос состояния таймаутов//1gct;//1act=[byte];//	возвращает байт u  u  u  u  nc no sc so
+                    //     Timeout = bits;
+                    //     break;
                     case "ats":
                         // запрос значения южного таймаута			//	1gts;	//	1ats=[int];		//	возвращает значение в секундах
                         TimeoutSouth = t;

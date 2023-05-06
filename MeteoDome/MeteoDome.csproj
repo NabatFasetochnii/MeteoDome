@@ -92,7 +92,7 @@
         <Compile Include="MeteoDB.cs" />
         <Compile Include="Program.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
-        <Compile Include="Serial_Devices.cs" />
+        <Compile Include="DomeSerialDevice.cs" />
         <EmbeddedResource Include="Form1.resx">
             <DependentUpon>Form1.cs</DependentUpon>
         </EmbeddedResource>

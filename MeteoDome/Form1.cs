@@ -15,11 +15,9 @@ namespace MeteoDome
     {
         private const int ZdNight = 102;
         private const int ZdFlat = 96;
-        private const int ClearAlert = -18;
-        private const int Clear = -20;
         private const int WeatherForCloseDome = -16;
         private const string BadString = "Weather is bad";
-        private const string GoodString = "Weather is good";
+        private const string GoodString = "Weather is good for observations";
         private const double Tolerance = 1e-8;
         private static readonly string Path = Directory.GetCurrentDirectory();
 
@@ -32,10 +30,10 @@ namespace MeteoDome
         private readonly MeteoDb _meteo;
 
         ////globals for dome
-        private readonly SerialDevices _serialDevices = new SerialDevices();
+        private readonly DomeSerialDevice _domeSerialDevice = new DomeSerialDevice();
 
         // private int _counter;
-        private bool _br;
+        private bool _disconectSocket;
         private bool _isDomeCanOpen;
         private bool _isFlat;
         private bool _isObsCanRun;
@@ -51,24 +49,27 @@ namespace MeteoDome
         private double _wind = -1;
         private bool _work = true;
         private readonly Thread _socketThread;
-
+        private bool _isFirst = true;
+    
         public MainForm()
         {
             InitializeComponent();
+            
+            button_Dome_Run.Enabled = !checkBox_AutoDome.Checked;
 
             _logger = new Logger(logBox);
-            _serialDevices.Logger = _logger;
+            _domeSerialDevice.Logger = _logger;
             _meteo = new MeteoDb(_logger);
 
             if (!Read_Cfg())
                 if (MessageBox.Show(@"Can't read config", @"OK", MessageBoxButtons.OK) == DialogResult.OK)
                     Environment.Exit(1);
 
-            if (!_serialDevices.Init())
+            if (!_domeSerialDevice.Init())
                 if (MessageBox.Show(@"Can't open Dome serial port", @"OK", MessageBoxButtons.OK) == DialogResult.OK)
                     Environment.Exit(1);
             //create timer for main loop
-            MeteoTimer.Elapsed += OnTimedEvent_Clock;
+            MeteoTimer.Elapsed += TimerGetClock;
             MeteoTimer.Interval = 1000;
             MeteoTimer.Start();
 
@@ -79,19 +80,24 @@ namespace MeteoDome
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             _work = false;
-            _serialDevices.Dispose();
+            _domeSerialDevice.Dispose();
             _socketThread.Abort();
-            timer1.Stop();
+            timerSet.Stop();
         }
 
         //one second timer for status and clock
-        private void OnTimedEvent_Clock(object sender, ElapsedEventArgs e)
+        private void TimerGetClock(object sender, ElapsedEventArgs e)
         {
-            // if(!getDomeThread.IsAlive)
-            //     getDomeThread.Start();
-            var getMeteoThread = new Thread(GetMeteo);
-            getMeteoThread.Start();
-            _serialDevices.UpDate();
+            // var getMeteoThread = new Thread(GetMeteo);
+            // getMeteoThread.Start();
+            GetMeteo();
+            _domeSerialDevice.UpDate();
+            if (_isFirst)
+            {
+                Thread.Sleep(2000);
+                _isFirst = false;
+            }
+            if (checkBox_AutoDome.Checked) Autopilot();
         }
 
         private void GetMeteo()
@@ -103,9 +109,9 @@ namespace MeteoDome
                 .Get_Seeing(); // return [seeing, seeing_extinction], [-1,-1] - disconnected, [0,-1] - old data
             _wind = _meteo.Get_Wind(); // return wind, -1 - disconnected, 100 - old data
             _sunZd = _meteo.Sun_ZD(); //return Sun zenith distance (degree)
-            if ((_skyVis[0] > 0) & (_skyVis[1] > 0))
+            if ((_skyVis[0] > 0) & (_skyVis[1] >= 0))
                 _isObsCanRun = MeteoDb.Get_Weather_Obs(_isObsCanRun, _skyVis[0], _skyVis[1]);
-            if ((_skyIr[0] < -1) & (_skyIr[1] > 0) & (-1 < _wind) & (_wind < 100))
+            if ((_skyIr[0] < -1) & (_skyIr[1] >= 0) & (-1 < _wind) & (_wind < 100))
                 _isDomeCanOpen =
                     MeteoDb.Get_Weather_Dome(_isShutterNorthOpen & _isShutterSouthOpen, _skyIr[0], _skyIr[1], _wind);
         }
@@ -278,6 +284,7 @@ namespace MeteoDome
                         Action2();
                     break;
                 default:
+
                     void Action3()
                     {
                         label_Wind.Text = @"Wind (m/s): " + _wind.ToString("00.0");
@@ -300,25 +307,7 @@ namespace MeteoDome
                 Invoke((Action) Action4);
             else
                 Action4();
-            UpdateWeatherLabel();
-
-
-            if (checkBox_AutoDome.Checked) Autopilot();
-
-            void Action5()
-            {
-                last_data_update_label.Text =
-                    "Last data update time:\n" + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
-            }
-
-            if (InvokeRequired)
-                Invoke((Action) Action5);
-            else
-                Action5();
-        }
-
-        private void UpdateWeatherLabel()
-        {
+            
             switch (_isWeatherGood)
             {
                 case -1:
@@ -365,44 +354,25 @@ namespace MeteoDome
             label_Obs_cond.ForeColor =
                 _isObsCanRun & _isShutterNorthOpen & _isShutterSouthOpen ? Color.Green : Color.Red;
             label_Obs_cond.Text = _isObsCanRun & _isShutterNorthOpen & _isShutterSouthOpen
-                ? "Observation conditions: Run"
-                : "Observation conditions: Stop";
+                ? "Observation conditions: Can observe"
+                : "Observation conditions: Can't observe";
         }
 
-        private void Autopilot()
+        private void TimerSetTick(object sender, EventArgs e)
         {
-            if (_isDomeCanOpen & _sunZd > 92)
-            {
-                open_dome();
-                if (_isObsCanRun)
-                {
-                    weather_choice();
-                }
-            }
-            else
-            {
-                stop_obs();
-            }
-
-            UpdateWeatherLabel();
-        }
-
-        private void timer1_Tick(object sender, EventArgs e)
-        {
-            //label_Time.Invoke(new Action(() => label_Time.Text = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")));
-            label_Time.Text = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+            toolStripStatusLabel.Text = $@"UTC: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}";
             SetMeteo();
             SetDome();
         }
 
         private void SetDome()
         {
-            var power = _serialDevices.Power;
-            _dome = _serialDevices.Dome;
-            var buttons = _serialDevices.Buttons;
-            var timeoutNorth = _serialDevices.TimeoutNorth;
-            var timeoutSouth = _serialDevices.TimeoutSouth;
-            var initflag = Convert.ToBoolean(_serialDevices.Initflag);
+            var power = _domeSerialDevice.Power;
+            _dome = _domeSerialDevice.Dome;
+            var buttons = _domeSerialDevice.Buttons;
+            var timeoutNorth = _domeSerialDevice.TimeoutNorth;
+            var timeoutSouth = _domeSerialDevice.TimeoutSouth;
+            var initflag = Convert.ToBoolean(_domeSerialDevice.Initflag);
 
             if (power[5] & power[6])
             {
@@ -692,70 +662,47 @@ namespace MeteoDome
             checkBox_initflag.Checked = initflag;
         }
 
-        private void weather_choice()
+        private void Autopilot()
         {
-            if (_skyIr[0] > WeatherForCloseDome)
+            if (_isDomeCanOpen & _sunZd > 94)
             {
-                // cloudy
-                _isWeatherGood = -1;
+                open_dome();
+                if (_isObsCanRun)
+                {
+                    if (_skyIr[0] > WeatherForCloseDome | _sunZd < ZdFlat)
+                    {
+                        // cloudy or too bright
+                        _isWeatherGood = -1;
+                        stop_obs();
+                        return;
+                    }
+
+                    //clear
+                    if (_sunZd < ZdNight)
+                    {
+                        // dusk
+                        //TODO FLAT
+                        //obs flat
+                        _logger.AddLogEntry("Flat can start");
+                        _isWeatherGood = 0;
+                        _isFlat = true;
+                        return;
+                    }
+
+                    // night
+                    _isFlat = false;
+                    if (_isObsRunning) return;
+                    _logger.AddLogEntry("Observation can start");
+                    _isObsRunning = true;
+                    _isWeatherGood = 1;
+                }
+            }
+            else
+            {
                 stop_obs();
-                return;
             }
-
-            // if (_skyIr[0] > ClearAlert)
-            // {
-            //     // погода плохая, но не слишком
-            //     sun_choice();
-            //     return;
-            // }
-            //
-            // // almost cloudless 
-            // if (_skyIr[0] > Clear) sun_choice();
-
-            //clear
-            sun_choice();
         }
-
-        private void sun_choice()
-        {
-            if (_sunZd < ZdFlat)
-            {
-                // sunny
-                stop_obs();
-                _isWeatherGood = -1;
-                return;
-            }
-
-            if (_sunZd < ZdNight)
-            {
-                // dusk
-                _isWeatherGood = 0;
-                start_flat();
-                return;
-            }
-
-            // night
-            start_obs();
-            _isWeatherGood = 1;
-        }
-
-        private void start_obs()
-        {
-            _isFlat = false;
-            if (_isObsRunning) return;
-            _logger.AddLogEntry("Observation start");
-            // open_dome();
-            _isObsRunning = true;
-        }
-
-        private void start_flat()
-        {
-            //TODO FLAT
-            //obs flat
-            _isFlat = true;
-            // open_dome();
-        }
-
+        
         private void stop_obs()
         {
             _isFlat = false;
@@ -766,20 +713,12 @@ namespace MeteoDome
             // Park();
         }
 
-        // private void Park()
-        // {
-        //     
-        //     _isParking = true;
-        //     _logger.AddLogEntry("Parking");
-        // }
-
         private void open_dome()
         {
             if ((!_dome[1] & !_dome[5]) | (!_dome[3] & !_dome[7]))
             {
                 open_south();
                 open_north();
-                update_dome();
             }
         }
 
@@ -789,82 +728,58 @@ namespace MeteoDome
             {
                 close_north();
                 close_south();
-                update_dome();
             }
         }
-
-        //TODO opening/closing
+        
         private void open_north()
         {
-            // if (_isShutterNorthOpen) return;
-
-
-            if (_serialDevices.Power[5])
+            if (_domeSerialDevice.Power[5])
             {
-                label_Shutter_North.Text = @"Shutter north: running";
                 _logger.AddLogEntry("Opening north");
-                _serialDevices.AddTask("1rno");
-                // _serialDevices.Write2Serial("1rno");
-                // _isShutterNorthOpen = true;
-                label_Shutter_North.Text = @"Shutter north: opened";
+                _domeSerialDevice.AddTask("1rno");
             }
             else
             {
-                _logger.AddLogEntry("Power is down");
+                _logger.AddLogEntry("North motor power off");
             }
         }
 
         private void close_north()
         {
-            // if (!_isShutterNorthOpen) return;
-            if (_serialDevices.Power[5])
+            if (_domeSerialDevice.Power[5])
             {
-                label_Shutter_North.Text = @"Shutter north: running";
                 _logger.AddLogEntry("Closing north");
-                _serialDevices.AddTask("1rnc");
-                // _serialDevices.Write2Serial("1rnc");
-                // _isShutterNorthOpen = false;
-                label_Shutter_North.Text = @"Shutter north: closed";
+                _domeSerialDevice.AddTask("1rnc");
             }
             else
             {
-                _logger.AddLogEntry("Power is down");
+                _logger.AddLogEntry("North motor power off");
             }
         }
 
         private void open_south()
         {
-            // if (_isShutterSouthOpen) return;
-            if (_serialDevices.Power[6])
+            if (_domeSerialDevice.Power[6])
             {
-                label_Shutter_South.Text = @"Shutter south: running";
-                _serialDevices.AddTask("1rso");
-                // _serialDevices.Write2Serial("1rso");
+                _domeSerialDevice.AddTask("1rso");
                 _logger.AddLogEntry("Opening south");
-                // _isShutterSouthOpen = true;
-                // label_Shutter_South.Text = @"Shutter south: opened";
             }
             else
             {
-                _logger.AddLogEntry("Power is down");
+                _logger.AddLogEntry("South motor power off");
             }
         }
 
         private void close_south()
         {
-            // if (!_isShutterSouthOpen) return;
-            if (_serialDevices.Power[6])
+            if (_domeSerialDevice.Power[6])
             {
-                label_Shutter_South.Text = @"Shutter south: running";
-                _serialDevices.AddTask("1rsc");
-                // _serialDevices.Write2Serial("1rsc");
+                _domeSerialDevice.AddTask("1rsc");
                 _logger.AddLogEntry("Closing south");
-                // _isShutterSouthOpen = false;
-                // label_Shutter_South.Text = @"Shutter south: closed";
             }
             else
             {
-                _logger.AddLogEntry("Power is down");
+                _logger.AddLogEntry("South motor power off");
             }
         }
 
@@ -883,7 +798,7 @@ namespace MeteoDome
                         switch (substrings[0])
                         {
                             case "Dome_ComID":
-                                _serialDevices.ComId = substrings[1];
+                                _domeSerialDevice.ComId = substrings[1];
                                 break;
                             //case "Delay":
                             //    Delay = Convert.ToInt32(substrings[1]);
@@ -929,30 +844,8 @@ namespace MeteoDome
         //     Park();
         // }
 
-        private void update_data_button_Click(object sender, EventArgs e)
-        {
-            var updateThreadMeteo = new Thread(update_meteo);
-            updateThreadMeteo.Start();
-            var updateThreadDome = new Thread(update_dome);
-            updateThreadDome.Start();
-        }
-
-        private void update_meteo()
-        {
-            GetMeteo();
-            SetMeteo();
-        }
-
-        private void update_dome()
-        {
-            // GetDome();
-            _serialDevices.UpDate();
-            SetDome();
-        }
-
         private void button_Dome_Run_Click(object sender, EventArgs e)
         {
-            // TODO DOME CLICK
             if (checkBoxNorth.Checked)
                 switch (comboBox_Dome.Text)
                 {
@@ -967,8 +860,7 @@ namespace MeteoDome
                         break;
                     }
                     case "Stop":
-                        // _serialDevices.Write2Serial("1rns");
-                        _serialDevices.AddTask("1rns");
+                        _domeSerialDevice.AddTask("1rns");
                         _logger.AddLogEntry("Stop north");
                         break;
                 }
@@ -987,8 +879,7 @@ namespace MeteoDome
                     break;
                 }
                 case "Stop":
-                    // _serialDevices.Write2Serial("1rss");
-                    _serialDevices.AddTask("1rss");
+                    _domeSerialDevice.AddTask("1rss");
                     _logger.AddLogEntry("Stop south");
                     break;
             }
@@ -1026,7 +917,7 @@ namespace MeteoDome
                     // создаем StreamWriter для отправки данных
                     var streamWriter = new StreamWriter(stream);
                     streamWriter.AutoFlush = true;
-                    _br = false;
+                    _disconectSocket = false;
 
                     // получаем сообщение
                     while (tcpClient.Client.Connected)
@@ -1035,7 +926,7 @@ namespace MeteoDome
                         var get = "";
                         if (stream.CanRead) get = streamReader.ReadLine();
 
-                        if (get == "stop" || _br)
+                        if (get == "stop" || _disconectSocket)
                         {
                             _logger.AddLogEntry("Соединение разорвано");
                             listenSocket.Stop();
@@ -1111,7 +1002,7 @@ namespace MeteoDome
             e.Handled = true;
             _logger.AddLogEntry("North timeout change to " + numericUpDown_timeout_north.Value);
             // _serialDevices.Write2Serial("1stn=" + numericUpDown_timeout_north.Value);
-            _serialDevices.AddTask("1stn=" + numericUpDown_timeout_north.Value);
+            _domeSerialDevice.AddTask("1stn=" + numericUpDown_timeout_north.Value);
         }
 
         private void numericUpDown_timeout_south_KeyPress(object sender, KeyPressEventArgs e)
@@ -1120,12 +1011,22 @@ namespace MeteoDome
             e.Handled = true;
             _logger.AddLogEntry("South timeout change to " + numericUpDown_timeout_south.Value);
             // _serialDevices.Write2Serial("1sts=" + numericUpDown_timeout_south.Value);
-            _serialDevices.AddTask("1sts=" + numericUpDown_timeout_south.Value);
+            _domeSerialDevice.AddTask("1sts=" + numericUpDown_timeout_south.Value);
         }
 
-        private void button_disconnect_Click(object sender, EventArgs e)
+        private void disconnectSocketToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            _br = true;
+            _disconectSocket = true;
+        }
+
+        private void clearLogToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            _logger.ClearLogs();
+        }
+
+        private void saveLogToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            _logger.SaveLogs();
         }
     }
 }
