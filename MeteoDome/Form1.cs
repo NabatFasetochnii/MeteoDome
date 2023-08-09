@@ -48,7 +48,6 @@ namespace MeteoDome
         private double _sunZd = -1;
         private double _wind = -1;
         private bool _work = true;
-        private readonly Thread _socketThread;
         private bool _isFirst = true;
     
         public MainForm()
@@ -70,18 +69,25 @@ namespace MeteoDome
                     Environment.Exit(1);
             //create timer for main loop
             MeteoTimer.Elapsed += TimerGetClock;
-            MeteoTimer.Interval = 1000;
+            MeteoTimer.Interval = 60000;
             MeteoTimer.Start();
+            
+            GetMeteo();
+            _domeSerialDevice.UpDate();
 
-            _socketThread = new Thread(socket_manager);
-            _socketThread.Start();
+            var socketThread = new Thread(socket_manager)
+            {
+                IsBackground = true
+            };
+            socketThread.Start();
         }
         
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             _work = false;
             _domeSerialDevice.Dispose();
-            _socketThread.Abort();
+            // _socketThread.Abort();
+            MeteoTimer.Close();
             timerSet.Stop();
         }
 
