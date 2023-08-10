@@ -16,8 +16,8 @@ namespace MeteoDome
         private const int ZdNight = 102;
         private const int ZdFlat = 96;
         private const int WeatherForCloseDome = -16;
-        private const string BadString = "Weather is bad";
-        private const string GoodString = "Weather is good for observations";
+        private const string BadString = "Weather is too bad to open dome";
+        private const string GoodString = "Weather is good to open dome";
         private const double Tolerance = 1e-8;
         private static readonly string Path = Directory.GetCurrentDirectory();
 
@@ -49,6 +49,7 @@ namespace MeteoDome
         private double _wind = -1;
         private bool _work = true;
         private bool _isFirst = true;
+        private Int16 counter = 0;
     
         public MainForm()
         {
@@ -69,7 +70,7 @@ namespace MeteoDome
                     Environment.Exit(1);
             //create timer for main loop
             MeteoTimer.Elapsed += TimerGetClock;
-            MeteoTimer.Interval = 60000;
+            MeteoTimer.Interval = 1000;
             MeteoTimer.Start();
             
             GetMeteo();
@@ -96,7 +97,13 @@ namespace MeteoDome
         {
             // var getMeteoThread = new Thread(GetMeteo);
             // getMeteoThread.Start();
-            GetMeteo();
+            if (counter == 60)
+            {
+                GetMeteo();
+                counter = 0;
+            }
+
+            counter++;
             _domeSerialDevice.UpDate();
             if (_isFirst)
             {
@@ -313,12 +320,10 @@ namespace MeteoDome
                 Invoke((Action) Action4);
             else
                 Action4();
-            
-            switch (_isWeatherGood)
-            {
-                case -1:
 
-                    void Action()
+            if (_isWeatherGood == -1)
+            {
+                 void Action()
                     {
                         weather_label.Text = BadString;
                     }
@@ -328,40 +333,37 @@ namespace MeteoDome
                     else
                         Action();
                     weather_label.ForeColor = Color.Red;
-                    break;
-                case 0:
-
-                    void Action1()
-                    {
-                        weather_label.Text = @"Weather is good for flat frame";
-                    }
-
-                    if (InvokeRequired)
-                        Invoke((Action) Action1);
-                    else
-                        Action1();
-                    weather_label.ForeColor = Color.DarkOrange;
-                    break;
-                case 1:
-
-                    void Action2()
-                    {
-                        weather_label.Text = GoodString;
-                    }
-
-                    if (InvokeRequired)
-                        Invoke((Action) Action2);
-                    else
-                        Action2();
-                    weather_label.ForeColor = Color.Green;
-                    break;
             }
+            else
+            {
+                void Action2()
+                {
+                    weather_label.Text = GoodString;
+                }
 
-            label_Obs_cond.ForeColor =
-                _isObsCanRun & _isShutterNorthOpen & _isShutterSouthOpen ? Color.Green : Color.Red;
-            label_Obs_cond.Text = _isObsCanRun & _isShutterNorthOpen & _isShutterSouthOpen
-                ? "Observation conditions: Can observe"
-                : "Observation conditions: Can't observe";
+                if (InvokeRequired)
+                    Invoke((Action) Action2);
+                else
+                    Action2();
+                weather_label.ForeColor = Color.Green;
+            }
+            
+            var temp = _isObsCanRun & _isShutterNorthOpen & _isShutterSouthOpen;
+
+            if (_isWeatherGood == 0)
+            {
+                label_Obs_cond.ForeColor = Color.DarkOrange;
+                label_Obs_cond.Text = @"Obs conditions: Can make flat frame";
+            } else if (temp)
+            {
+                label_Obs_cond.ForeColor = Color.Green;
+                label_Obs_cond.Text = @"Obs conditions: Can observe";
+            }
+            else
+            {
+                label_Obs_cond.ForeColor = Color.Red;
+                label_Obs_cond.Text = @"Obs conditions: Can't observe";
+            }
         }
 
         private void TimerSetTick(object sender, EventArgs e)
@@ -495,11 +497,12 @@ namespace MeteoDome
                 // msg = "Южный мотор открывает крышу";
             }
 
-            if (!(_dome[0] | _dome[1]))
+            var nMotorDown = !(_dome[0] | _dome[1]);
+            if (nMotorDown)
             {
                 void Action()
                 {
-                    label_Motor_North.Text = @"Motor north: run down";
+                    label_Motor_North.Text = @"Motor north: stopped";
                 }
 
                 if (InvokeRequired)
@@ -510,11 +513,12 @@ namespace MeteoDome
                 Action();
             }
 
-            if (!(_dome[2] | _dome[3]))
+            var sMotorDown = !(_dome[2] | _dome[3]);
+            if (sMotorDown)
             {
                 void Action()
                 {
-                    label_Motor_South.Text = @"Motor south: run down";
+                    label_Motor_South.Text = @"Motor south: stopped";
                 }
 
                 if (InvokeRequired)
@@ -543,6 +547,14 @@ namespace MeteoDome
                 });
                 label_Shutter_North.ForeColor = Color.Red;
             }
+            else if (nMotorDown)
+            {
+                label_Shutter_North.Invoke((MethodInvoker) delegate
+                {
+                    label_Shutter_North.Text = @"Shutter north: half open";
+                });
+                label_Shutter_North.ForeColor = Color.DarkOrange;
+            }
             else
             {
                 label_Shutter_North.Invoke((MethodInvoker) delegate
@@ -569,6 +581,14 @@ namespace MeteoDome
                     label_Shutter_South.Text = @"Shutter south: closed";
                 });
                 label_Shutter_South.ForeColor = Color.Red;
+            }
+            else if (sMotorDown)
+            {
+                label_Shutter_South.Invoke((MethodInvoker) delegate
+                {
+                    label_Shutter_South.Text = @"Shutter south: half open";
+                });
+                label_Shutter_South.ForeColor = Color.DarkOrange;
             }
             else
             {
