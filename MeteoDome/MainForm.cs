@@ -49,7 +49,8 @@ namespace MeteoDome
         private double _wind = -1;
         private bool _work = true;
         private bool _isFirst = true;
-        private Int16 counter = 0;
+        private short _counter;
+        private short _checkWeatherForDome;
     
         public MainForm()
         {
@@ -97,21 +98,24 @@ namespace MeteoDome
         {
             // var getMeteoThread = new Thread(GetMeteo);
             // getMeteoThread.Start();
-            if (counter == 60)
+            if (_counter == 60)
             {
                 GetMeteo();
-                counter = 0;
+                _counter = 0;
             }
-
-            counter++;
+            _counter++;
             _domeSerialDevice.UpDate();
             if (_isFirst)
             {
                 Thread.Sleep(2000);
                 _isFirst = false;
             }
+
+            CheckWeather();
             if (checkBox_AutoDome.Checked) Autopilot();
         }
+
+       
 
         private void GetMeteo()
         {
@@ -688,39 +692,74 @@ namespace MeteoDome
             checkBox_initflag.Checked = initflag;
         }
 
-        private void Autopilot()
+        private void CheckWeather()
         {
             if (_isDomeCanOpen & _sunZd > 94)
             {
-                open_dome();
+                _checkWeatherForDome = 1;
                 if (_isObsCanRun)
                 {
                     if (_skyIr[0] > WeatherForCloseDome | _sunZd < ZdFlat)
                     {
                         // cloudy or too bright
                         _isWeatherGood = -1;
-                        stop_obs();
+                        _checkWeatherForDome = -1;
+                        // stop_obs();
                         return;
                     }
 
                     //clear
                     if (_sunZd < ZdNight)
                     {
-                        // dusk
-                        //TODO FLAT
-                        //obs flat
-                        _logger.AddLogEntry("Flat can start");
+                        _checkWeatherForDome = 2;
                         _isWeatherGood = 0;
-                        _isFlat = true;
+                        // dusk
+                        // if (!_isFlat)
+                        // {
+                        //     //obs flat
+                        //     _logger.AddLogEntry("Flat can start");
+                        //     _isWeatherGood = 0;
+                        //     _isFlat = true;
+                        //     return;
+                        // }
                         return;
                     }
 
-                    // night
-                    _isFlat = false;
-                    if (_isObsRunning) return;
-                    _logger.AddLogEntry("Observation can start");
-                    _isObsRunning = true;
+                    _checkWeatherForDome = 3;
+                    // // night
+                    // _isFlat = false;
+                    // if (_isObsRunning) return;
+                    // _logger.AddLogEntry("Observation can start");
+                    // _isObsRunning = true;
                     _isWeatherGood = 1;
+                }
+            }
+            // stop_obs();
+            _checkWeatherForDome = 0;
+        }
+        
+        private void Autopilot()
+        {
+            if (_checkWeatherForDome > 0)
+            {
+                open_dome();
+                switch (_checkWeatherForDome)
+                {
+                    case 2 when !_isFlat:
+                        //TODO FLAT
+                        //obs flat
+                        _logger.AddLogEntry("Flat can start");
+                        _isFlat = true;
+                        return;
+                    case 3:
+                    {
+                        // night
+                        _isFlat = false;
+                        if (_isObsRunning) return;
+                        _logger.AddLogEntry("Observation can start");
+                        _isObsRunning = true;
+                        return;
+                    }
                 }
             }
             else
@@ -736,7 +775,7 @@ namespace MeteoDome
             if (!_isObsRunning) return;
             _logger.AddLogEntry("Observation stop");
             _isObsRunning = false;
-            // Park();
+            // Park(); TODO
         }
 
         private void open_dome()
