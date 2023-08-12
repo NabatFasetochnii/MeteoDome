@@ -15,12 +15,6 @@ namespace MeteoDome
         // private long _magicCounter = 0;
         // private BufferBlock<Consumer> consumers = new BufferBlock<Consumer>();
         private static readonly List<string> Waiters = new List<string>();
-        private readonly SerialPort _serialPort = new SerialPort();
-        private Thread _proc;
-        public BitArray Buttons = new BitArray(8, false);
-
-        //serial port
-        public string ComId;
 
         private readonly string[] _commands =
         {
@@ -33,6 +27,13 @@ namespace MeteoDome
             "1gin",
             "1gca"
         };
+
+        private readonly SerialPort _serialPort = new SerialPort();
+        private Thread _proc;
+        public BitArray Buttons = new BitArray(8, false);
+
+        //serial port
+        public string ComId;
 
         public BitArray Dome = new BitArray(8, false);
 
@@ -87,7 +88,7 @@ namespace MeteoDome
                 _serialPort.Open();
                 if (!_serialPort.IsOpen) return;
                 _serialPort.ReadTimeout = 500;
-                _serialPort.NewLine = "\0";  // Serial commands separator
+                _serialPort.NewLine = "\0"; // Serial commands separator
                 _serialPort.ReceivedBytesThreshold = 6;
                 _serialPort.DiscardInBuffer(); // чистить порт после открытия
                 Logger.AddLogEntry("SerialPort opened");

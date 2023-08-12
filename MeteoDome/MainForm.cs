@@ -2,8 +2,6 @@
 using System.Collections;
 using System.Drawing;
 using System.IO;
-using System.Net;
-using System.Net.Sockets;
 using System.Threading;
 using System.Timers;
 using System.Windows.Forms;
@@ -23,39 +21,40 @@ namespace MeteoDome
 
         private static readonly Timer MeteoTimer = new Timer(); //clock timer and status check timer
 
+        ////globals for dome
+        private readonly DomeSerialDevice _domeSerialDevice = new DomeSerialDevice();
+
         private readonly Logger _logger;
         // private static readonly Timer DomeTimer = new Timer(); //clock timer and status check timer
 
         ////globals for database
         private readonly MeteoDb _meteo;
-
-        ////globals for dome
-        private readonly DomeSerialDevice _domeSerialDevice = new DomeSerialDevice();
+        private short _checkWeatherForDome;
+        private short _counter;
 
         // private int _counter;
-        private bool _disconectSocket;
+        private BitArray _dome = new BitArray(8);
         private bool _isDomeCanOpen;
+        private bool _isFirst = true;
         private bool _isFlat;
         private bool _isObsCanRun;
         private bool _isObsRunning;
         private bool _isShutterNorthOpen;
         private bool _isShutterSouthOpen;
-        private BitArray _dome = new BitArray(8);
         private int _isWeatherGood = -1;
         private double[] _seeing = {-1, -1};
         private double[] _skyIr = {-1, -1};
         private double[] _skyVis = {-1, -1};
         private double _sunZd = -1;
         private double _wind = -1;
-        private bool _work = true;
-        private bool _isFirst = true;
-        private short _counter;
-        private short _checkWeatherForDome;
-    
+        // private bool _work = true;
+
+        private readonly Socks _socks;
+
         public MainForm()
         {
             InitializeComponent();
-            
+
             button_Dome_Run.Enabled = !checkBox_AutoDome.Checked;
 
             _logger = new Logger(logBox);
@@ -73,22 +72,20 @@ namespace MeteoDome
             MeteoTimer.Elapsed += TimerGetClock;
             MeteoTimer.Interval = 1000;
             MeteoTimer.Start();
-            
+
             GetMeteo();
             _domeSerialDevice.UpDate();
 
-            var socketThread = new Thread(socket_manager)
-            {
-                IsBackground = true
-            };
-            socketThread.Start();
+            _socks = new Socks(_logger, ref _seeing, ref _skyIr, ref _skyVis, 
+                ref _sunZd, ref _wind, ref _isFlat, ref _isObsRunning);
+            _socks.StartListening();
         }
-        
+
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            _work = false;
+            // _work = false;
             _domeSerialDevice.Dispose();
-            // _socketThread.Abort();
+            _socks.StopListening();
             MeteoTimer.Close();
             timerSet.Stop();
         }
@@ -115,7 +112,6 @@ namespace MeteoDome
             if (checkBox_AutoDome.Checked) Autopilot();
         }
 
-       
 
         private void GetMeteo()
         {
@@ -327,16 +323,16 @@ namespace MeteoDome
 
             if (_isWeatherGood == -1)
             {
-                 void Action()
-                    {
-                        weather_label.Text = BadString;
-                    }
+                void Action()
+                {
+                    weather_label.Text = BadString;
+                }
 
-                    if (InvokeRequired)
-                        Invoke((Action) Action);
-                    else
-                        Action();
-                    weather_label.ForeColor = Color.Red;
+                if (InvokeRequired)
+                    Invoke((Action) Action);
+                else
+                    Action();
+                weather_label.ForeColor = Color.Red;
             }
             else
             {
@@ -351,14 +347,15 @@ namespace MeteoDome
                     Action2();
                 weather_label.ForeColor = Color.Green;
             }
-            
+
             var temp = _isObsCanRun & _isShutterNorthOpen & _isShutterSouthOpen;
 
             if (_isWeatherGood == 0)
             {
                 label_Obs_cond.ForeColor = Color.DarkOrange;
                 label_Obs_cond.Text = @"Obs conditions: Can make flat frame";
-            } else if (temp)
+            }
+            else if (temp)
             {
                 label_Obs_cond.ForeColor = Color.Green;
                 label_Obs_cond.Text = @"Obs conditions: Can observe";
@@ -694,12 +691,12 @@ namespace MeteoDome
 
         private void CheckWeather()
         {
-            if (_isDomeCanOpen & _sunZd > 94)
+            if (_isDomeCanOpen & (_sunZd > 94))
             {
                 _checkWeatherForDome = 1;
                 if (_isObsCanRun)
                 {
-                    if (_skyIr[0] > WeatherForCloseDome | _sunZd < ZdFlat)
+                    if ((_skyIr[0] > WeatherForCloseDome) | (_sunZd < ZdFlat))
                     {
                         // cloudy or too bright
                         _isWeatherGood = -1;
@@ -734,10 +731,11 @@ namespace MeteoDome
                     _isWeatherGood = 1;
                 }
             }
+
             // stop_obs();
             _checkWeatherForDome = 0;
         }
-        
+
         private void Autopilot()
         {
             if (_checkWeatherForDome > 0)
@@ -767,7 +765,7 @@ namespace MeteoDome
                 stop_obs();
             }
         }
-        
+
         private void stop_obs()
         {
             _isFlat = false;
@@ -795,7 +793,7 @@ namespace MeteoDome
                 close_south();
             }
         }
-        
+
         private void open_north()
         {
             if (_domeSerialDevice.Power[5])
@@ -904,11 +902,6 @@ namespace MeteoDome
             }
         }
 
-        // private void park_button_Click(object sender, EventArgs e)
-        // {
-        //     Park();
-        // }
-
         private void button_Dome_Run_Click(object sender, EventArgs e)
         {
             if (checkBoxNorth.Checked)
@@ -955,118 +948,11 @@ namespace MeteoDome
             button_Dome_Run.Enabled = !checkBox_AutoDome.Checked;
         }
 
-        private void socket_manager()
-        {
-            const int port = 8085; // порт для приема входящих запросов
-            // получаем адреса для запуска сокета
-            var ipPoint = new IPEndPoint(IPAddress.Loopback, port);
-            // создаем сокет
-            // var listenSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            var listenSocket = new TcpListener(ipPoint)
-            {
-                ExclusiveAddressUse = true
-            };
-
-            while (true)
-                try
-                {
-                    if (!_work) break;
-                    listenSocket.Start();
-                    _logger.AddLogEntry(@"Сервер запущен. Ожидание подключений...");
-                    var tcpClient = listenSocket.AcceptTcpClient();
-                    _logger.AddLogEntry($"Установленно соединение: {tcpClient.Client.RemoteEndPoint}");
-
-                    var stream = tcpClient.GetStream();
-                    // создаем StreamReader для чтения данных
-                    var streamReader = new StreamReader(stream);
-                    // создаем StreamWriter для отправки данных
-                    var streamWriter = new StreamWriter(stream);
-                    streamWriter.AutoFlush = true;
-                    _disconectSocket = false;
-
-                    // получаем сообщение
-                    while (tcpClient.Client.Connected)
-                    {
-                        if (!_work) break;
-                        var get = "";
-                        if (stream.CanRead) get = streamReader.ReadLine();
-
-                        if (get == "stop" || _disconectSocket)
-                        {
-                            _logger.AddLogEntry("Соединение разорвано");
-                            listenSocket.Stop();
-                            break;
-                        }
-
-                        switch (get)
-                        {
-                            case "sky":
-                            {
-                                // отправляем ответ
-                                streamWriter.WriteLine(_skyIr[0].ToString("00.0"));
-                                break;
-                            }
-                            case "sky std":
-                            {
-                                streamWriter.WriteLine(_skyIr[1].ToString("00.0"));
-                                break;
-                            }
-                            case "extinction":
-                            {
-                                streamWriter.WriteLine(_skyVis[0].ToString("00.0"));
-                                break;
-                            }
-                            case "extinction std":
-                            {
-                                streamWriter.WriteLine(_skyVis[1].ToString("00.0"));
-                                break;
-                            }
-                            case "seeing":
-                            {
-                                streamWriter.WriteLine(_seeing[0].ToString("00.0"));
-                                break;
-                            }
-                            case "seeing_extinction":
-                            {
-                                streamWriter.WriteLine(_seeing[1].ToString("00.0"));
-                                break;
-                            }
-                            case "wind":
-                            {
-                                streamWriter.WriteLine(_wind.ToString("00.0"));
-                                break;
-                            }
-                            case "sun":
-                            {
-                                streamWriter.WriteLine(_sunZd.ToString("00.0"));
-                                break;
-                            }
-                            case "obs":
-                            {
-                                streamWriter.WriteLine(_isObsRunning.ToString());
-                                break;
-                            }
-                            case "flat":
-                            {
-                                streamWriter.WriteLine(_isFlat.ToString());
-                                break;
-                            }
-                        }
-                    }
-                }
-                catch
-                {
-                    listenSocket.Stop();
-                    break;
-                }
-        }
-
         private void numericUpDown_timeout_north_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar != (char) Keys.Return) return;
             e.Handled = true;
             _logger.AddLogEntry("North timeout change to " + numericUpDown_timeout_north.Value);
-            // _serialDevices.Write2Serial("1stn=" + numericUpDown_timeout_north.Value);
             _domeSerialDevice.AddTask("1stn=" + numericUpDown_timeout_north.Value);
         }
 
@@ -1075,13 +961,7 @@ namespace MeteoDome
             if (e.KeyChar != (char) Keys.Return) return;
             e.Handled = true;
             _logger.AddLogEntry("South timeout change to " + numericUpDown_timeout_south.Value);
-            // _serialDevices.Write2Serial("1sts=" + numericUpDown_timeout_south.Value);
             _domeSerialDevice.AddTask("1sts=" + numericUpDown_timeout_south.Value);
-        }
-
-        private void disconnectSocketToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            _disconectSocket = true;
         }
 
         private void clearLogToolStripMenuItem_Click(object sender, EventArgs e)

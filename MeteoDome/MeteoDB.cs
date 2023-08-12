@@ -9,14 +9,15 @@ namespace MeteoDome
         private static readonly double Latitude = 57.036537;
         private static readonly double Longitude = 59.545735;
         private readonly Logger _logger;
+
+        ////globals
+        private readonly string ServicesConnString =
+            "Server=192.168.240.26;Port=5432;User Id=services;Password=services; Database=services;";
+
         public MeteoDb(Logger logger)
         {
             _logger = logger;
         }
-
-        ////globals
-        private string ServicesConnString =
-            "Server=192.168.240.26;Port=5432;User Id=services;Password=services; Database=services;";
 
         private static double Ut2Jd(DateTime ut)
         {
@@ -90,8 +91,7 @@ namespace MeteoDome
 
         //return Sun zenith distance (degree)
         public double Sun_ZD()
-        {   
-            
+        {
             var jd = Ut2Jd(DateTime.Now.ToUniversalTime());
             var lsTh = Jd2Lst(jd, Longitude);
             var sun = Get_Sun(jd, lsTh, Latitude);
@@ -148,7 +148,7 @@ namespace MeteoDome
 
                     conn.Close();
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     _logger.AddLogEntry(e.Message);
                     _logger.AddLogEntry("MeteoDB: ERROR SKY VIS");
