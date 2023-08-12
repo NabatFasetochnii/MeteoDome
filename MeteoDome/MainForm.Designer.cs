@@ -97,7 +97,6 @@
             this.groupBox_Meteo.Size = new System.Drawing.Size(286, 301);
             this.groupBox_Meteo.TabIndex = 0;
             this.groupBox_Meteo.TabStop = false;
-            this.groupBox_Meteo.Text = "Meteo";
             // 
             // weather_label
             // 
@@ -107,7 +106,6 @@
             this.weather_label.Name = "weather_label";
             this.weather_label.Size = new System.Drawing.Size(76, 17);
             this.weather_label.TabIndex = 11;
-            this.weather_label.Text = "Weather is";
             // 
             // label_Obs_cond
             // 
@@ -118,7 +116,6 @@
             this.label_Obs_cond.Name = "label_Obs_cond";
             this.label_Obs_cond.Size = new System.Drawing.Size(190, 17);
             this.label_Obs_cond.TabIndex = 9;
-            this.label_Obs_cond.Text = "Observation conditions: Stop";
             // 
             // label_Sun
             // 
@@ -129,7 +126,6 @@
             this.label_Sun.Name = "label_Sun";
             this.label_Sun.Size = new System.Drawing.Size(198, 17);
             this.label_Sun.TabIndex = 7;
-            this.label_Sun.Text = "Sun zenith distance (deg): 2.2";
             // 
             // label_Wind
             // 
@@ -140,7 +136,6 @@
             this.label_Wind.Name = "label_Wind";
             this.label_Wind.Size = new System.Drawing.Size(104, 17);
             this.label_Wind.TabIndex = 6;
-            this.label_Wind.Text = "Wind (m/s): 2.2";
             // 
             // label_Allsky_ext_STD
             // 
@@ -151,7 +146,6 @@
             this.label_Allsky_ext_STD.Name = "label_Allsky_ext_STD";
             this.label_Allsky_ext_STD.Size = new System.Drawing.Size(210, 17);
             this.label_Allsky_ext_STD.TabIndex = 5;
-            this.label_Allsky_ext_STD.Text = "AllSky extinction STD (mag): 0.1";
             // 
             // label_Seeing
             // 
@@ -162,7 +156,6 @@
             this.label_Seeing.Name = "label_Seeing";
             this.label_Seeing.Size = new System.Drawing.Size(136, 17);
             this.label_Seeing.TabIndex = 4;
-            this.label_Seeing.Text = "Seeing (arcsec): 2.2";
             // 
             // label_Allsky_ext
             // 
@@ -173,7 +166,6 @@
             this.label_Allsky_ext.Name = "label_Allsky_ext";
             this.label_Allsky_ext.Size = new System.Drawing.Size(178, 17);
             this.label_Allsky_ext.TabIndex = 3;
-            this.label_Allsky_ext.Text = "AllSky extinction (mag): 0.1";
             // 
             // label_Seeing_ext
             // 
@@ -184,7 +176,6 @@
             this.label_Seeing_ext.Name = "label_Seeing_ext";
             this.label_Seeing_ext.Size = new System.Drawing.Size(184, 17);
             this.label_Seeing_ext.TabIndex = 2;
-            this.label_Seeing_ext.Text = "Seeing extinction (mag): 0.1";
             // 
             // label_SkyTempSTD
             // 
@@ -195,7 +186,6 @@
             this.label_SkyTempSTD.Name = "label_SkyTempSTD";
             this.label_SkyTempSTD.Size = new System.Drawing.Size(210, 17);
             this.label_SkyTempSTD.TabIndex = 1;
-            this.label_SkyTempSTD.Text = "Sky temperature STD (deg): 0.3";
             // 
             // label_SkyTemp
             // 
@@ -206,7 +196,6 @@
             this.label_SkyTemp.Name = "label_SkyTemp";
             this.label_SkyTemp.Size = new System.Drawing.Size(196, 17);
             this.label_SkyTemp.TabIndex = 0;
-            this.label_SkyTemp.Text = "Sky temperature not available";
             // 
             // groupBox_Dome
             // 
@@ -235,7 +224,6 @@
             this.groupBox_Dome.Size = new System.Drawing.Size(355, 301);
             this.groupBox_Dome.TabIndex = 1;
             this.groupBox_Dome.TabStop = false;
-            this.groupBox_Dome.Text = "Dome";
             // 
             // checkBox_initflag
             // 
@@ -273,7 +261,6 @@
             this.label_timeout_south.Name = "label_timeout_south";
             this.label_timeout_south.Size = new System.Drawing.Size(151, 17);
             this.label_timeout_south.TabIndex = 17;
-            this.label_timeout_south.Text = "Timeout south (s): 120";
             // 
             // label_timeout_north
             // 
@@ -282,7 +269,6 @@
             this.label_timeout_north.Name = "label_timeout_north";
             this.label_timeout_north.Size = new System.Drawing.Size(149, 17);
             this.label_timeout_north.TabIndex = 14;
-            this.label_timeout_north.Text = "Timeout north (s): 120";
             // 
             // label_butt_south
             // 
@@ -291,7 +277,6 @@
             this.label_butt_south.Name = "label_butt_south";
             this.label_butt_south.Size = new System.Drawing.Size(171, 17);
             this.label_butt_south.TabIndex = 12;
-            this.label_butt_south.Text = "Button south: not pressed";
             // 
             // label_butt_north
             // 
@@ -300,7 +285,6 @@
             this.label_butt_north.Name = "label_butt_north";
             this.label_butt_north.Size = new System.Drawing.Size(169, 17);
             this.label_butt_north.TabIndex = 11;
-            this.label_butt_north.Text = "Button north: not pressed";
             // 
             // checkBoxSouth
             // 
@@ -336,7 +320,6 @@
             this.label_Shutter_South.Name = "label_Shutter_South";
             this.label_Shutter_South.Size = new System.Drawing.Size(142, 17);
             this.label_Shutter_South.TabIndex = 7;
-            this.label_Shutter_South.Text = "Shutter south: closed";
             // 
             // label_Shutter_North
             // 
@@ -347,7 +330,6 @@
             this.label_Shutter_North.Name = "label_Shutter_North";
             this.label_Shutter_North.Size = new System.Drawing.Size(140, 17);
             this.label_Shutter_North.TabIndex = 6;
-            this.label_Shutter_North.Text = "Shutter north: closed";
             // 
             // label_Motor_North
             // 
@@ -358,7 +340,6 @@
             this.label_Motor_North.Name = "label_Motor_North";
             this.label_Motor_North.Size = new System.Drawing.Size(147, 17);
             this.label_Motor_North.TabIndex = 5;
-            this.label_Motor_North.Text = "Motor north: run down";
             // 
             // label_Motor_South
             // 
@@ -369,7 +350,6 @@
             this.label_Motor_South.Name = "label_Motor_South";
             this.label_Motor_South.Size = new System.Drawing.Size(149, 17);
             this.label_Motor_South.TabIndex = 4;
-            this.label_Motor_South.Text = "Motor south: run down";
             // 
             // label_Dome_Power
             // 
@@ -380,7 +360,6 @@
             this.label_Dome_Power.Name = "label_Dome_Power";
             this.label_Dome_Power.Size = new System.Drawing.Size(74, 17);
             this.label_Dome_Power.TabIndex = 3;
-            this.label_Dome_Power.Text = "Power: Off";
             // 
             // checkBox_AutoDome
             // 
@@ -448,21 +427,19 @@
             this.menuStrip2.Name = "menuStrip2";
             this.menuStrip2.Size = new System.Drawing.Size(643, 24);
             this.menuStrip2.TabIndex = 4;
-            this.menuStrip2.Text = "menuStrip";
             // 
             // menuToolStripMenuItem
             // 
-            this.menuToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {this.clearLogToolStripMenuItem, this.saveLogToolStripMenuItem});
-            this.menuToolStripMenuItem.Name = "menuToolStripMenuItem";
-            this.menuToolStripMenuItem.Size = new System.Drawing.Size(50, 20);
-            this.menuToolStripMenuItem.Text = "Menu";
             // 
             // clearLogToolStripMenuItem
             // 
             this.clearLogToolStripMenuItem.Name = "clearLogToolStripMenuItem";
             this.clearLogToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.clearLogToolStripMenuItem.Text = "Clear log";
-            this.clearLogToolStripMenuItem.Click += new System.EventHandler(this.clearLogToolStripMenuItem_Click);
+            this.menuToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {this.clearLogToolStripMenuItem, this.saveLogToolStripMenuItem});
+            this.menuToolStripMenuItem.Name = "menuToolStripMenuItem";
+            this.menuToolStripMenuItem.Size = new System.Drawing.Size(50, 20);
+            this.menuToolStripMenuItem.Text = "Menu";
             // 
             // saveLogToolStripMenuItem
             // 
@@ -478,7 +455,6 @@
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(643, 22);
             this.statusStrip1.TabIndex = 5;
-            this.statusStrip1.Text = "statusStrip";
             // 
             // toolStripStatusLabel
             // 
@@ -500,7 +476,6 @@
             this.Icon = ((System.Drawing.Icon) (resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(1);
             this.Name = "MainForm";
-            this.Text = "Meteo&Dome";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.groupBox_Meteo.ResumeLayout(false);
             this.groupBox_Meteo.PerformLayout();
