@@ -16,7 +16,7 @@ namespace MeteoDome
         private const int WeatherForCloseDome = -16;
         private const string BadString = "Weather is too bad to open dome";
         private const string GoodString = "Weather is good to open dome";
-        private const double Tolerance = 1e-8;
+        private const double Tolerance = 1e-6;
         private static readonly string Path = Directory.GetCurrentDirectory();
 
         private static readonly Timer MeteoTimer = new Timer(); //clock timer and status check timer
@@ -56,6 +56,9 @@ namespace MeteoDome
             InitializeComponent();
 
             button_Dome_Run.Enabled = !checkBox_AutoDome.Checked;
+            
+            
+            
 
             _logger = new Logger(logBox);
             _domeSerialDevice.Logger = _logger;
@@ -85,7 +88,7 @@ namespace MeteoDome
         {
             // _work = false;
             _domeSerialDevice.Dispose();
-            _socks.StopListening();
+            // _socks.StopListening();
             MeteoTimer.Close();
             timerSet.Stop();
         }
@@ -962,11 +965,6 @@ namespace MeteoDome
             e.Handled = true;
             _logger.AddLogEntry("South timeout change to " + numericUpDown_timeout_south.Value);
             _domeSerialDevice.AddTask("1sts=" + numericUpDown_timeout_south.Value);
-        }
-
-        private void clearLogToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            _logger.ClearLogs();
         }
 
         private void saveLogToolStripMenuItem_Click(object sender, EventArgs e)

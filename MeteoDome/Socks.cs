@@ -136,8 +136,6 @@ namespace MeteoDome
 
         private void Disconnect()
         {
-            _streamReader.Close();
-            _streamWriter.Close();
             _tcpClient.Dispose();
             _logger.AddLogEntry("Соединение разорвано");
         }
