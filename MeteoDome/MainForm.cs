@@ -56,9 +56,6 @@ namespace MeteoDome
             InitializeComponent();
 
             button_Dome_Run.Enabled = !checkBox_AutoDome.Checked;
-            
-            
-            
 
             _logger = new Logger(logBox);
             _domeSerialDevice.Logger = _logger;
@@ -75,8 +72,6 @@ namespace MeteoDome
             MeteoTimer.Elapsed += TimerGetClock;
             MeteoTimer.Interval = 1000;
             MeteoTimer.Start();
-
-            GetMeteo();
             _domeSerialDevice.UpDate();
 
             _socks = new Socks(_logger, ref _seeing, ref _skyIr, ref _skyVis, 
@@ -86,9 +81,7 @@ namespace MeteoDome
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            // _work = false;
             _domeSerialDevice.Dispose();
-            // _socks.StopListening();
             MeteoTimer.Close();
             timerSet.Stop();
         }
@@ -96,8 +89,6 @@ namespace MeteoDome
         //one second timer for status and clock
         private void TimerGetClock(object sender, ElapsedEventArgs e)
         {
-            // var getMeteoThread = new Thread(GetMeteo);
-            // getMeteoThread.Start();
             if (_counter == 60)
             {
                 GetMeteo();
@@ -107,6 +98,7 @@ namespace MeteoDome
             _domeSerialDevice.UpDate();
             if (_isFirst)
             {
+                GetMeteo();
                 Thread.Sleep(2000);
                 _isFirst = false;
             }
@@ -699,7 +691,7 @@ namespace MeteoDome
                 _checkWeatherForDome = 1;
                 if (_isObsCanRun)
                 {
-                    if ((_skyIr[0] > WeatherForCloseDome) | (_sunZd < ZdFlat))
+                    if (_sunZd < ZdFlat)
                     {
                         // cloudy or too bright
                         _isWeatherGood = -1;

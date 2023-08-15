@@ -64,11 +64,6 @@ namespace MeteoDome
                     if (_tcpClient.Connected)
                     {
                         var get = await _streamReader.ReadLineAsync();
-                        // if (get == "stop")
-                        // {
-                        //     Disconnect();
-                        //     continue;
-                        // }
                         switch (get)
                         {
                             case "sky":
