@@ -6,8 +6,22 @@ namespace MeteoDome
 {
     public class MeteoDb
     {
-        private static readonly double Latitude = 57.036537;
-        private static readonly double Longitude = 59.545735;
+        private const double Latitude = 57.036537;
+        private const double Longitude = 59.545735;
+        public const int MaxWind = 3;
+        public const int MinWind = 6;
+        public const int MinSkyTemp = -18;
+        public const int MaxSkyTemp = -14;
+        public const int MaxSkyStd = 3;
+        public const int MinSkyStd = 1;
+        public const double MinExtinction = 0.3;
+        public const double MinExtinctionStd = 0.1;
+        public const double MaxExtinction = 0.6;
+        public const double MaxExtinctionStd = 0.2;
+        public const int SunZdDomeOpen = 94;
+        public const int SunZdFlat = 96;
+        public const int SunZdNight = 102;
+        
         private readonly Logger _logger;
 
         ////globals
@@ -327,15 +341,15 @@ namespace MeteoDome
             switch (dome)
             {
                 //if dome closed
-                case false when wind > 3:
-                case false when skyTemp > -18:
-                case false when skyStd > 1:
+                case false when wind > MinWind:
+                case false when skyTemp > MinSkyTemp:
+                case false when skyStd > MinSkyStd:
                     return false;
                 case false: return true;
                 //if dome opened
-                case true when wind > 6:
-                case true when skyTemp > -14:
-                case true when skyStd > 3:
+                case true when wind > MaxWind:
+                case true when skyTemp > MaxSkyTemp:
+                case true when skyStd > MaxSkyStd:
                     return false;
                 case true: return true;
             }
@@ -346,14 +360,14 @@ namespace MeteoDome
             switch (obs)
             {
                 //standby
-                case false when ext > 0.3:
-                case false when extStd > 0.1:
+                case false when ext > MinExtinction:
+                case false when extStd > MinExtinctionStd:
                     return false;
                 case false:
                     return true;
                 //observation in run
-                case true when ext > 0.6:
-                case true when extStd > 0.2:
+                case true when ext > MaxExtinction:
+                case true when extStd > MaxExtinctionStd:
                     return false;
                 case true:
                     return true;
