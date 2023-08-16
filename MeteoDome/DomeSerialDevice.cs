@@ -181,22 +181,20 @@ namespace MeteoDome
                 // ignored
             }
 
-            var reply = "___";
-            byte value;
             var bits = new BitArray(8);
             // var bits = "";
             var t = 0;
 
             try
             {
-                reply = indata.Substring(1, 3);
+                var reply = indata.Substring(1, 3);
                 if (reply == "ats" || reply == "atn")
                 {
                     t = Convert.ToInt32(indata.Substring(5));
                 }
                 else
                 {
-                    value = Convert.ToByte(indata.Substring(5));
+                    var value = Convert.ToByte(indata.Substring(5));
                     var gar = BitConverter.GetBytes(value);
                     bits = new BitArray(new[] {gar[0]});
                     bool buf;

@@ -11,9 +11,6 @@ namespace MeteoDome
 {
     public partial class MainForm : Form
     {
-        // private const int ZdNight = 102;
-        // private const int ZdFlat = 96;
-        // private const int SkyTempForCloseDome = -16;
         private const string BadString = "Weather is too bad to open dome";
         private const string GoodString = "Weather is good to open dome";
         private const double Tolerance = 1e-6;
@@ -41,13 +38,11 @@ namespace MeteoDome
         private bool _isObsRunning;
         private bool _isShutterNorthOpen;
         private bool _isShutterSouthOpen;
-        // private int _isWeatherGood = -1;
         private double[] _seeing = {-1, -1};
         private double[] _skyIr = {-1, -1};
         private double[] _skyVis = {-1, -1};
         private double _sunZd = -1;
         private double _wind = -1;
-        // private bool _work = true;
 
         public MainForm()
         {
@@ -89,7 +84,6 @@ namespace MeteoDome
         //one second timer for status and clock
         private void TimerGetClock(object sender, ElapsedEventArgs e)
         {
-            
             _domeSerialDevice.UpDate();
             if (_counter == 60 || _counter == 0)
             {
@@ -102,7 +96,7 @@ namespace MeteoDome
                     _isFirst = false;
                 }
 
-                CheckWeather();
+                CheckWeather(); 
                 if (checkBox_AutoDome.Checked) Autopilot();
             }
             _counter++;
@@ -122,7 +116,7 @@ namespace MeteoDome
 
         private void SetMeteo()
         {
-            if (Math.Abs(_skyIr[0] - -1) < Tolerance)
+            if (Math.Abs(_skyIr[0] + 1) < Tolerance)
             {
                 void Action()
                 {
@@ -135,7 +129,7 @@ namespace MeteoDome
                 else
                     Action();
             }
-            else if ((_skyIr[0] == 0) & (Math.Abs(_skyIr[1] - -1) < Tolerance))
+            else if ((_skyIr[0] == 0) & (Math.Abs(_skyIr[1] + 1) < Tolerance))
             {
                 void Action()
                 {
@@ -376,6 +370,10 @@ namespace MeteoDome
                 {
                     label_Sun.ForeColor = Color.DarkOrange;
                 }
+                else
+                {
+                    label_Sun.ForeColor = Color.Red;
+                }
             }
 
             if (InvokeRequired)
@@ -384,7 +382,7 @@ namespace MeteoDome
                 Action4();
 
             
-            if (_checkWeatherForDome == -1)
+            if (_checkWeatherForDome < 1)
             {
                 void Action()
                 {
@@ -769,25 +767,24 @@ namespace MeteoDome
             if (_isDomeCanOpen & (_sunZd > MeteoDb.SunZdDomeOpen))
             {
                 _checkWeatherForDome = 1;
-                if (_isObsCanRun)
+                if (!_isObsCanRun) return;
+                if (_sunZd < MeteoDb.SunZdFlat)
                 {
-                    if (_sunZd < MeteoDb.SunZdFlat)
-                    {
-                        // cloudy or too bright
-                        _checkWeatherForDome = -1;
-                        return;
-                    }
-
-                    //clear
-                    if (_sunZd < MeteoDb.SunZdNight)
-                    {
-                        _checkWeatherForDome = 2;
-                        // dusk
-                        return;
-                    }
-                    _checkWeatherForDome = 3;
-                    // // night
+                    // cloudy or too bright
+                    _checkWeatherForDome = -1;
+                    return;
                 }
+
+                //clear
+                if (_sunZd < MeteoDb.SunZdNight)
+                {
+                    _checkWeatherForDome = 2;
+                    // dusk
+                    return;
+                }
+                _checkWeatherForDome = 3;
+                // // night
+                return;
             }
 
             // stop_obs();
@@ -1020,6 +1017,16 @@ namespace MeteoDome
             e.Handled = true;
             _logger.AddLogEntry("South timeout change to " + numericUpDown_timeout_south.Value);
             _domeSerialDevice.AddTask("1sts=" + numericUpDown_timeout_south.Value);
+        }
+
+        private void toolStripMenuItemSaveLogs_Click(object sender, EventArgs e)
+        {
+            _logger.SaveLogs();
+        }
+
+        private void toolStripMenuItemClearLogs_Click(object sender, EventArgs e)
+        {
+            _logger.ClearLogs();
         }
     }
 }
