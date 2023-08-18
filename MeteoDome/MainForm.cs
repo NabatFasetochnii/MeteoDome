@@ -40,7 +40,9 @@ namespace MeteoDome
         private bool _isObsCanRun;
         private bool _isObsRunning;
         private bool _isShutterNorthOpen;
+
         private bool _isShutterSouthOpen;
+
         // private int _isWeatherGood = -1;
         private double[] _seeing = {-1, -1};
         private double[] _skyIr = {-1, -1};
@@ -54,7 +56,7 @@ namespace MeteoDome
             InitializeComponent();
 
             button_Dome_Run.Enabled = !checkBox_AutoDome.Checked;
-            
+
             _logger = new Logger(logBox);
             _domeSerialDevice.Logger = _logger;
             _meteo = new MeteoDb(_logger);
@@ -63,16 +65,20 @@ namespace MeteoDome
                 if (MessageBox.Show(@"Can't read config", @"OK", MessageBoxButtons.OK) == DialogResult.OK)
                     Environment.Exit(1);
 
+            // if (!_domeSerialDevice.Init())
+            //     if (MessageBox.Show(@"Can't open Dome serial port", @"OK", MessageBoxButtons.OK) == DialogResult.OK)
+            //         Environment.Exit(1);
+
             if (!_domeSerialDevice.Init())
-                if (MessageBox.Show(@"Can't open Dome serial port", @"OK", MessageBoxButtons.OK) == DialogResult.OK)
-                    Environment.Exit(1);
+                MessageBox.Show(@"Can't open Dome serial port", @"OK", MessageBoxButtons.OK);
+
             //create timer for main loop
             MeteoTimer.Elapsed += TimerGetClock;
             MeteoTimer.Interval = 1000;
             MeteoTimer.Start();
             _domeSerialDevice.UpDate();
 
-            var socks = new Socks(_logger, ref _seeing, ref _skyIr, ref _skyVis, 
+            var socks = new Socks(_logger, ref _seeing, ref _skyIr, ref _skyVis,
                 ref _sunZd, ref _wind, ref _isFlat, ref _isObsRunning);
             socks.StartListening();
         }
@@ -89,13 +95,12 @@ namespace MeteoDome
         //one second timer for status and clock
         private void TimerGetClock(object sender, ElapsedEventArgs e)
         {
-            
             _domeSerialDevice.UpDate();
             if (_counter == 60 || _counter == 0)
             {
                 GetMeteo();
                 _counter = 0;
-                
+
                 if (_isFirst)
                 {
                     Thread.Sleep(2000);
@@ -105,6 +110,7 @@ namespace MeteoDome
                 CheckWeather();
                 if (checkBox_AutoDome.Checked) Autopilot();
             }
+
             _counter++;
         }
 
@@ -117,7 +123,7 @@ namespace MeteoDome
             _seeing = _meteo
                 .Get_Seeing(); // return [seeing, seeing_extinction], [-1,-1] - disconnected, [0,-1] - old data
             _wind = _meteo.Get_Wind(); // return wind, -1 - disconnected, 100 - old data
-            _sunZd = _meteo.Sun_ZD(); //return Sun zenith distance (degree)
+            _sunZd = MeteoDb.Sun_ZD(); //return Sun zenith distance (degree)
         }
 
         private void SetMeteo()
@@ -153,10 +159,11 @@ namespace MeteoDome
                 void Action()
                 {
                     label_SkyTemp.Text = @"Sky temperature (deg): " + _skyIr[0].ToString("00.0");
-                    if (_skyIr[0]<MeteoDb.MinSkyTemp)
+                    if (_skyIr[0] < MeteoDb.MinSkyTemp)
                     {
                         label_SkyTemp.ForeColor = Color.Green;
-                    }else if (_skyIr[0] > MeteoDb.MinSkyTemp && _skyIr[0] < MeteoDb.MaxSkyTemp)
+                    }
+                    else if (_skyIr[0] > MeteoDb.MinSkyTemp && _skyIr[0] < MeteoDb.MaxSkyTemp)
                     {
                         label_SkyTemp.ForeColor = Color.DarkOrange;
                     }
@@ -170,23 +177,6 @@ namespace MeteoDome
                     Invoke((Action) Action);
                 else
                     Action();
-            }
-
-            void Act1()
-            {
-                label_SkyTempSTD.Text = @"Sky temperature STD (deg): " + _skyIr[1].ToString("00.00");
-                if (_skyIr[1]<MeteoDb.MinSkyStd)
-                {
-                    label_SkyTempSTD.ForeColor = Color.Green;
-                }else if (_skyIr[1] > MeteoDb.MinSkyStd && _skyIr[1] < MeteoDb.MaxSkyStd)
-                {
-                    label_SkyTempSTD.ForeColor = Color.DarkOrange;
-                }
-                else
-                {
-                    label_SkyTempSTD.ForeColor = Color.Red;
-                }
-                
             }
 
             if (InvokeRequired)
@@ -225,10 +215,11 @@ namespace MeteoDome
                 void Action()
                 {
                     label_Allsky_ext.Text = @"AllSky extinction (mag): " + _skyVis[0].ToString("00.0");
-                    if (_skyVis[0]<MeteoDb.MinExtinction)
+                    if (_skyVis[0] < MeteoDb.MinExtinction)
                     {
                         label_Allsky_ext.ForeColor = Color.Green;
-                    } else if (_skyVis[0] > MeteoDb.MinExtinction && _skyVis[0] < MeteoDb.MaxExtinction)
+                    }
+                    else if (_skyVis[0] > MeteoDb.MinExtinction && _skyVis[0] < MeteoDb.MaxExtinction)
                     {
                         label_Allsky_ext.ForeColor = Color.DarkOrange;
                     }
@@ -242,22 +233,6 @@ namespace MeteoDome
                     Invoke((Action) Action);
                 else
                     Action();
-            }
-
-            void Act2()
-            {
-                label_Allsky_ext_STD.Text = @"AllSky extinction STD (mag): " + _skyVis[1].ToString("00.00");
-                if (_skyVis[1]<MeteoDb.MinExtinctionStd)
-                {
-                    label_Allsky_ext_STD.ForeColor = Color.Green;
-                } else if (_skyVis[1] > MeteoDb.MinExtinctionStd && _skyVis[1] < MeteoDb.MaxExtinctionStd)
-                {
-                    label_Allsky_ext_STD.ForeColor = Color.DarkOrange;
-                }
-                else
-                {
-                    label_Allsky_ext_STD.ForeColor = Color.Red;
-                }
             }
 
             if (InvokeRequired)
@@ -301,11 +276,6 @@ namespace MeteoDome
                     Action();
             }
 
-            void Act3()
-            {
-                label_Seeing.Text = @"Seeing (arcsec): " + _seeing[0].ToString("00.0");
-            }
-
             if (InvokeRequired)
                 Invoke((Action) Act3);
             else
@@ -314,68 +284,48 @@ namespace MeteoDome
             {
                 case -1:
 
-                    void Action()
-                    {
-                        label_Wind.Text = @"Wind (m/s): disconnected";
-                        label_Wind.ForeColor = Color.DarkBlue;
-                    }
-
                     if (InvokeRequired)
                         Invoke((Action) Action);
                     else
                         Action();
                     break;
-                case 100:
 
-                    void Action2()
+                    void Action()
                     {
-                        label_Wind.Text = @"Wind (m/s): old data";
+                        label_Wind.Text = @"Wind (m/s): disconnected";
                         label_Wind.ForeColor = Color.DarkBlue;
                     }
+                case 100:
 
                     if (InvokeRequired)
                         Invoke((Action) Action2);
                     else
                         Action2();
                     break;
-                default:
 
-                    void Action3()
+                    void Action2()
                     {
-                        label_Wind.Text = @"Wind (m/s): " + _wind.ToString("00.0");
-                        if (_wind<MeteoDb.MinWind)
-                        {
-                            label_Wind.ForeColor = Color.Green;
-                        } else if (_wind > MeteoDb.MinWind && _wind < MeteoDb.MaxWind)
-                        {
-                            label_Wind.ForeColor = Color.DarkOrange;
-                        }
-                        else
-                        {
-                            label_Wind.ForeColor = Color.Red;
-                        }
+                        label_Wind.Text = @"Wind (m/s): old data";
+                        label_Wind.ForeColor = Color.DarkBlue;
                     }
+                default:
 
                     if (InvokeRequired)
                         Invoke((Action) Action3);
                     else
                         Action3();
                     break;
-            }
-            
-            void Action4()
-            {
-                label_Sun.Text = @"Sun zenith distance (deg): " + _sunZd.ToString("00.0");
-                if (_sunZd > MeteoDb.SunZdNight)
-                {
-                    label_Sun.ForeColor = Color.Green;
-                } else if (_sunZd > MeteoDb.SunZdFlat)
-                {
-                    label_Sun.ForeColor = Color.Lime;
-                } else if (_sunZd > MeteoDb.SunZdDomeOpen)
-                {
-                    label_Sun.ForeColor = Color.DarkOrange;
-                }
+
+                    void Action3()
+                    {
+                        label_Wind.Text = @"Wind (m/s): " + _wind.ToString("00.0");
+                        if (_wind < MeteoDb.MinWind)
+                            label_Wind.ForeColor = Color.Green;
+                        else if (_wind > MeteoDb.MinWind && _wind < MeteoDb.MaxWind)
+                            label_Wind.ForeColor = Color.DarkOrange;
+                        else
+                            label_Wind.ForeColor = Color.Red;
+                    }
             }
 
             if (InvokeRequired)
@@ -383,7 +333,6 @@ namespace MeteoDome
             else
                 Action4();
 
-            
             if (_checkWeatherForDome == -1)
             {
                 void Action()
@@ -391,7 +340,7 @@ namespace MeteoDome
                     dome_weather_label.Text = BadString;
                     dome_weather_label.ForeColor = Color.Red;
                 }
-                
+
                 if (InvokeRequired)
                     Invoke((Action) Action);
                 else
@@ -409,7 +358,6 @@ namespace MeteoDome
                     Invoke((Action) Action2);
                 else
                     Action2();
-                
             }
 
             /////observe
@@ -420,7 +368,7 @@ namespace MeteoDome
                 label_Obs_cond.ForeColor = Color.DarkOrange;
                 label_Obs_cond.Text = @"Obs conditions: Can make flat frame";
             }
-            else if (temp && _checkWeatherForDome == 3 )
+            else if (temp && _checkWeatherForDome == 3)
             {
                 label_Obs_cond.ForeColor = Color.Green;
                 label_Obs_cond.Text = @"Obs conditions: Can observe";
@@ -429,6 +377,45 @@ namespace MeteoDome
             {
                 label_Obs_cond.ForeColor = Color.Red;
                 label_Obs_cond.Text = @"Obs conditions: Can't observe";
+            }
+
+            return;
+
+            void Act3()
+            {
+                label_Seeing.Text = @"Seeing (arcsec): " + _seeing[0].ToString("00.0");
+            }
+
+            void Action4()
+            {
+                label_Sun.Text = @"Sun zenith distance (deg): " + _sunZd.ToString("00.0");
+                if (_sunZd > MeteoDb.SunZdNight)
+                    label_Sun.ForeColor = Color.Green;
+                else if (_sunZd > MeteoDb.SunZdFlat)
+                    label_Sun.ForeColor = Color.Lime;
+                else if (_sunZd > MeteoDb.SunZdDomeOpen) label_Sun.ForeColor = Color.DarkOrange;
+            }
+
+            void Act2()
+            {
+                label_Allsky_ext_STD.Text = @"AllSky extinction STD (mag): " + _skyVis[1].ToString("00.00");
+                if (_skyVis[1] < MeteoDb.MinExtinctionStd)
+                    label_Allsky_ext_STD.ForeColor = Color.Green;
+                else if (_skyVis[1] > MeteoDb.MinExtinctionStd && _skyVis[1] < MeteoDb.MaxExtinctionStd)
+                    label_Allsky_ext_STD.ForeColor = Color.DarkOrange;
+                else
+                    label_Allsky_ext_STD.ForeColor = Color.Red;
+            }
+
+            void Act1()
+            {
+                label_SkyTempSTD.Text = @"Sky temperature STD (deg): " + _skyIr[1].ToString("00.00");
+                if (_skyIr[1] < MeteoDb.MinSkyStd)
+                    label_SkyTempSTD.ForeColor = Color.Green;
+                else if (_skyIr[1] > MeteoDb.MinSkyStd && _skyIr[1] < MeteoDb.MaxSkyStd)
+                    label_SkyTempSTD.ForeColor = Color.DarkOrange;
+                else
+                    label_SkyTempSTD.ForeColor = Color.Red;
             }
         }
 
@@ -446,7 +433,7 @@ namespace MeteoDome
             var buttons = _domeSerialDevice.Buttons;
             var timeoutNorth = _domeSerialDevice.TimeoutNorth;
             var timeoutSouth = _domeSerialDevice.TimeoutSouth;
-            var initflag = Convert.ToBoolean(_domeSerialDevice.Initflag);
+            var initflag = Convert.ToBoolean(_domeSerialDevice.InitFlag);
 
             if (power[5] & power[6])
             {
@@ -762,8 +749,8 @@ namespace MeteoDome
                     _isObsCanRun = MeteoDb.Get_Weather_Obs(_isObsCanRun, _skyVis[0], _skyVis[1]);
                 if ((_skyIr[0] < -1) & (_skyIr[1] >= 0) & (-1 < _wind) & (_wind < 100))
                     _isDomeCanOpen =
-                        MeteoDb.Get_Weather_Dome(_isShutterNorthOpen & _isShutterSouthOpen, 
-                            _skyIr[0], _skyIr[1], _wind);    
+                        MeteoDb.Get_Weather_Dome(_isShutterNorthOpen & _isShutterSouthOpen,
+                            _skyIr[0], _skyIr[1], _wind);
             }
 
             if (_isDomeCanOpen & (_sunZd > MeteoDb.SunZdDomeOpen))
@@ -785,6 +772,7 @@ namespace MeteoDome
                         // dusk
                         return;
                     }
+
                     _checkWeatherForDome = 3;
                     // // night
                 }
@@ -857,7 +845,7 @@ namespace MeteoDome
             if (_domeSerialDevice.Power[5])
             {
                 _logger.AddLogEntry("Opening north");
-                _domeSerialDevice.AddTask("1rno");
+                DomeSerialDevice.AddTask("1rno");
             }
             else
             {
@@ -870,7 +858,7 @@ namespace MeteoDome
             if (_domeSerialDevice.Power[5])
             {
                 _logger.AddLogEntry("Closing north");
-                _domeSerialDevice.AddTask("1rnc");
+                DomeSerialDevice.AddTask("1rnc");
             }
             else
             {
@@ -882,7 +870,7 @@ namespace MeteoDome
         {
             if (_domeSerialDevice.Power[6])
             {
-                _domeSerialDevice.AddTask("1rso");
+                DomeSerialDevice.AddTask("1rso");
                 _logger.AddLogEntry("Opening south");
             }
             else
@@ -895,7 +883,7 @@ namespace MeteoDome
         {
             if (_domeSerialDevice.Power[6])
             {
-                _domeSerialDevice.AddTask("1rsc");
+                DomeSerialDevice.AddTask("1rsc");
                 _logger.AddLogEntry("Closing south");
             }
             else
@@ -906,16 +894,14 @@ namespace MeteoDome
 
         private bool Read_Cfg()
         {
-            string line;
-            string[] substrings;
-
             try
             {
                 using (var reader = File.OpenText(Path + "\\Robophot.cfg"))
                 {
+                    string line;
                     while ((line = reader.ReadLine()) != null)
                     {
-                        substrings = line.Split(' ', '\t');
+                        var substrings = line.Split(' ', '\t');
                         switch (substrings[0])
                         {
                             case "Dome_ComID":
@@ -976,7 +962,7 @@ namespace MeteoDome
                         break;
                     }
                     case "Stop":
-                        _domeSerialDevice.AddTask("1rns");
+                        DomeSerialDevice.AddTask("1rns");
                         _logger.AddLogEntry("Stop north");
                         break;
                 }
@@ -995,7 +981,7 @@ namespace MeteoDome
                     break;
                 }
                 case "Stop":
-                    _domeSerialDevice.AddTask("1rss");
+                    DomeSerialDevice.AddTask("1rss");
                     _logger.AddLogEntry("Stop south");
                     break;
             }
@@ -1011,7 +997,7 @@ namespace MeteoDome
             if (e.KeyChar != (char) Keys.Return) return;
             e.Handled = true;
             _logger.AddLogEntry("North timeout change to " + numericUpDown_timeout_north.Value);
-            _domeSerialDevice.AddTask("1stn=" + numericUpDown_timeout_north.Value);
+            DomeSerialDevice.AddTask("1stn=" + numericUpDown_timeout_north.Value);
         }
 
         private void NumericUpDown_timeout_south_KeyPress(object sender, KeyPressEventArgs e)
@@ -1019,7 +1005,7 @@ namespace MeteoDome
             if (e.KeyChar != (char) Keys.Return) return;
             e.Handled = true;
             _logger.AddLogEntry("South timeout change to " + numericUpDown_timeout_south.Value);
-            _domeSerialDevice.AddTask("1sts=" + numericUpDown_timeout_south.Value);
+            DomeSerialDevice.AddTask("1sts=" + numericUpDown_timeout_south.Value);
         }
     }
 }

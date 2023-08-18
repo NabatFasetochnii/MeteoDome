@@ -31,7 +31,7 @@ namespace MeteoDome
             }
         }
 
-        public void ClearLogs()
+        private void ClearLogs()
         {
             _logBox.Invoke((MethodInvoker) delegate
             {
@@ -40,7 +40,7 @@ namespace MeteoDome
             });
         }
 
-        public void SaveLogs()
+        private void SaveLogs()
         {
             _logBox.Invoke((MethodInvoker) delegate
             {

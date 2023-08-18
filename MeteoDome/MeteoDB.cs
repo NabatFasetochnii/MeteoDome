@@ -21,11 +21,11 @@ namespace MeteoDome
         public const int SunZdDomeOpen = 94;
         public const int SunZdFlat = 96;
         public const int SunZdNight = 102;
-        
+
         private readonly Logger _logger;
 
         ////globals
-        private readonly string ServicesConnString =
+        private const string ServicesConnString =
             "Server=192.168.240.26;Port=5432;User Id=services;Password=services; Database=services;";
 
         public MeteoDb(Logger logger)
@@ -44,7 +44,7 @@ namespace MeteoDome
 
         private static double Jd2Lst(double jd, double longitude)
         {
-            var jd2000 = 2451545.0;
+            const double jd2000 = 2451545.0;
             //double JD = UT2JD(UT);
             var t0 = jd - jd2000;
             var T = t0 / 36525;
@@ -65,9 +65,9 @@ namespace MeteoDome
             var g = 357.528 + 0.9856003 * n; //get mean anomaly of the Sun
 
             //put L and g in the range from 0 to 360
-            if (l > 360) l = l - Math.Floor(l / 360) * 360.0;
+            if (l > 360) l -= Math.Floor(l / 360) * 360.0;
             if (l < 0) l = l - Math.Floor(l / 360) * 360.0 + 360;
-            if (g > 360) g = g - Math.Floor(g / 360) * 360.0;
+            if (g > 360) g -= Math.Floor(g / 360) * 360.0;
             if (g < 0) g = g - Math.Floor(g / 360) * 360.0 + 360;
 
             var lambda = l + 1.915 * Math.Sin(g / (180.0 / Math.PI)) + 0.02 * Math.Sin(2 * g / (180.0 / Math.PI));
@@ -104,7 +104,7 @@ namespace MeteoDome
         }
 
         //return Sun zenith distance (degree)
-        public double Sun_ZD()
+        public static double Sun_ZD()
         {
             var jd = Ut2Jd(DateTime.Now.ToUniversalTime());
             var lsTh = Jd2Lst(jd, Longitude);

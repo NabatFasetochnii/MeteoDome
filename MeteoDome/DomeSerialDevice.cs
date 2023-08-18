@@ -29,7 +29,7 @@ namespace MeteoDome
         };
 
         private readonly SerialPort _serialPort = new SerialPort();
-        private Thread _proc;
+        private Thread _loopThreadForQuery;
         public BitArray Buttons = new BitArray(8, false);
 
         //serial port
@@ -37,7 +37,7 @@ namespace MeteoDome
 
         public BitArray Dome = new BitArray(8, false);
 
-        public int Initflag;
+        public int InitFlag;
         public Logger Logger;
 
         public BitArray Power = new BitArray(8, false);
@@ -48,13 +48,13 @@ namespace MeteoDome
         // public string timeout = "";
         public int TimeoutNorth = 120;
         public int TimeoutSouth = 120;
-        public bool TransmissionEnabled;
+        private bool _transmissionEnabled;
 
         public void Dispose()
         {
             Close_Port();
             _serialPort.Dispose();
-            _proc.Abort();
+            _loopThreadForQuery.Abort();
         }
 
         public bool Init()
@@ -63,22 +63,25 @@ namespace MeteoDome
             ComTimer.Interval = 1000; // ожидание ответа микроконтроллера 1000мс
             _serialPort.DataReceived += SerialPort_DataReceived;
             // ComTimer.Start();
-            Open_Port();
-            _proc = new Thread(() =>
-            {
-                while (true)
-                {
-                    if (!TransmissionEnabled) continue;
-                    if (Waiters.Count == 0) continue;
-                    Write2Serial(Waiters[0]);
-                    Waiters.RemoveAt(0);
-                }
-            });
-            _proc.Start();
-            return TransmissionEnabled;
+            OpenPort();
+            _loopThreadForQuery = new Thread(Looper);
+            _loopThreadForQuery.Start();
+            return _transmissionEnabled;
         }
 
-        private void Open_Port()
+        private void Looper()
+        {
+            while (true)
+            {
+                if (!_serialPort.IsOpen) break;
+                if (!_transmissionEnabled) continue;
+                if (Waiters.Count == 0) continue;
+                Write2Serial(Waiters[0]);
+                Waiters.RemoveAt(0);
+            }
+        }
+
+        private void OpenPort()
         {
             _serialPort.PortName = "COM" + ComId;
             _serialPort.BaudRate = 9600;
@@ -92,7 +95,7 @@ namespace MeteoDome
                 _serialPort.ReceivedBytesThreshold = 6;
                 _serialPort.DiscardInBuffer(); // чистить порт после открытия
                 Logger.AddLogEntry("SerialPort opened");
-                TransmissionEnabled = true;
+                _transmissionEnabled = true;
             }
             catch (Exception ex)
             {
@@ -101,12 +104,12 @@ namespace MeteoDome
             }
         }
 
-        public void Close_Port()
+        private void Close_Port()
         {
             try
             {
                 ComTimer.Stop();
-                TransmissionEnabled = false;
+                _transmissionEnabled = false;
                 _serialPort.Close();
                 Logger.AddLogEntry("SerialPort closed");
             }
@@ -122,7 +125,7 @@ namespace MeteoDome
             foreach (var command in _commands) AddTask(command);
         }
 
-        public void AddTask(string com)
+        public static void AddTask(string com)
         {
             if (!Waiters.Contains(com)) Waiters.Add(com);
         }
@@ -133,21 +136,20 @@ namespace MeteoDome
             try
             {
                 if (command is null) return;
-                if (!_serialPort.IsOpen || !TransmissionEnabled) return;
+                if (!_serialPort.IsOpen || !_transmissionEnabled) return;
                 if (command[1] == 'r' || command[1] == 's') //if run command
                 {
-                    TransmissionEnabled = false;
+                    _transmissionEnabled = false;
                     _serialPort.WriteLine(command);
-                    TransmissionEnabled = true;
+                    _transmissionEnabled = true;
                 }
 
-                if (command[1] == 'g') //if question
-                {
-                    _serialPort.DiscardInBuffer(); //clear input buffer
-                    _serialPort.WriteLine(command); //send question
-                    TransmissionEnabled = false; //disable transmission of next command
-                    ComTimer.Start(); //start 1000 ms timer for waiting
-                }
+                if (command[1] != 'g') return;
+                _serialPort.DiscardInBuffer(); //clear input buffer
+                _serialPort.WriteLine(command); //send question
+                _transmissionEnabled = false; //disable transmission of next command
+                ComTimer.Start(); //start 1000 ms timer for waiting
+                //if question
             }
             catch (NullReferenceException e)
             {
@@ -162,7 +164,7 @@ namespace MeteoDome
         private void OnTimedEvent_Com(object sender, ElapsedEventArgs e)
         {
             ComTimer.Stop();
-            TransmissionEnabled = true;
+            _transmissionEnabled = true;
         }
 
         //serial port reader
@@ -181,30 +183,25 @@ namespace MeteoDome
                 // ignored
             }
 
-            var reply = "___";
-            byte value;
             var bits = new BitArray(8);
             // var bits = "";
             var t = 0;
 
             try
             {
-                reply = indata.Substring(1, 3);
+                var reply = indata.Substring(1, 3); //var reply = "___";
                 if (reply == "ats" || reply == "atn")
                 {
                     t = Convert.ToInt32(indata.Substring(5));
                 }
                 else
                 {
-                    value = Convert.ToByte(indata.Substring(5));
+                    var value = Convert.ToByte(indata.Substring(5));
                     var gar = BitConverter.GetBytes(value);
                     bits = new BitArray(new[] {gar[0]});
-                    bool buf;
                     for (var i = 0; i < bits.Count / 2; i++) // HACK Reverse order of bits variable
                     {
-                        buf = bits[i];
-                        bits[i] = bits[bits.Count - i - 1];
-                        bits[bits.Count - i - 1] = buf;
+                        (bits[i], bits[bits.Count - i - 1]) = (bits[bits.Count - i - 1], bits[i]);
                     }
                 }
 
@@ -236,7 +233,7 @@ namespace MeteoDome
                         TimeoutNorth = t;
                         break;
                     case "ain":
-                        Initflag = int.Parse(indata.Substring(5, 1));
+                        InitFlag = int.Parse(indata.Substring(5, 1));
                         break;
                 }
             }
@@ -248,14 +245,14 @@ namespace MeteoDome
 
             try
             {
-                indata = _serialPort.ReadExisting(); //cleaning
+                _serialPort.ReadExisting(); //cleaning
             }
             catch
             {
                 // ignored
             }
 
-            TransmissionEnabled = true; //enable transmission
+            _transmissionEnabled = true; //enable transmission
         }
     }
 }

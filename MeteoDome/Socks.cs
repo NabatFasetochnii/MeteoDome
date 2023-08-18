@@ -55,6 +55,12 @@ namespace MeteoDome
         {
             while (true)
             {
+                if (_server is null)
+                {
+                    _logger.AddLogEntry("Socks error: _server is null");
+                    break;
+                }
+
                 try
                 {
                     _tcpClient = await _server.AcceptTcpClientAsync();
@@ -135,10 +141,10 @@ namespace MeteoDome
             _logger.AddLogEntry("Соединение разорвано");
         }
 
-        public void StopListening()
-        {
-            Disconnect();
-            _server.Stop();
-        }
+        // public void StopListening()
+        // {
+        //     Disconnect();
+        //     _server.Stop();
+        // }
     }
 }
