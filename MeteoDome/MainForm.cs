@@ -122,7 +122,7 @@ namespace MeteoDome
 
         private void SetMeteo()
         {
-            if (Math.Abs(_skyIr[0] - -1) < Tolerance)
+            if (Math.Abs(_skyIr[0] + 1) < Tolerance)
             {
                 void Action()
                 {
@@ -135,7 +135,7 @@ namespace MeteoDome
                 else
                     Action();
             }
-            else if ((_skyIr[0] == 0) & (Math.Abs(_skyIr[1] - -1) < Tolerance))
+            else if ((_skyIr[0] == 0) & (Math.Abs(_skyIr[1] + 1) < Tolerance))
             {
                 void Action()
                 {
@@ -178,7 +178,7 @@ namespace MeteoDome
             else
                 Act1();
 
-            if (Math.Abs(_skyVis[0] - -1) < Tolerance)
+            if (Math.Abs(_skyVis[0] + 1) < Tolerance)
             {
                 void Action()
                 {
@@ -191,7 +191,7 @@ namespace MeteoDome
                 else
                     Action();
             }
-            else if ((_skyVis[0] == 0) & (Math.Abs(_skyVis[1] - -1) < Tolerance))
+            else if ((_skyVis[0] == 0) & (Math.Abs(_skyVis[1] + 1) < Tolerance))
             {
                 void Action()
                 {
@@ -233,7 +233,7 @@ namespace MeteoDome
                 Invoke((Action) Act2);
             else
                 Act2();
-            if (Math.Abs(_seeing[0] - -1) < Tolerance)
+            if (Math.Abs(_seeing[0] + 1) < Tolerance)
             {
                 void Action()
                 {
@@ -245,7 +245,7 @@ namespace MeteoDome
                 else
                     Action();
             }
-            else if ((_seeing[0] == 0) & (Math.Abs(_skyVis[1] - -1) < Tolerance))
+            else if ((_seeing[0] == 0) & (Math.Abs(_skyVis[1] + 1) < Tolerance))
             {
                 void Action()
                 {
@@ -327,7 +327,7 @@ namespace MeteoDome
             else
                 Action4();
 
-            if (_checkWeatherForDome == -1)
+            if (_checkWeatherForDome < 1)
             {
                 void Action()
                 {
