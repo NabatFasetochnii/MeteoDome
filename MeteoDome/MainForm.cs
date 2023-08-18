@@ -1002,5 +1002,15 @@ namespace MeteoDome
             _logger.AddLogEntry("South timeout change to " + numericUpDown_timeout_south.Value);
             DomeSerialDevice.AddTask("1sts=" + numericUpDown_timeout_south.Value);
         }
+
+        private void toolStripMenuItemSaveLogs_Click(object sender, EventArgs e)
+        {
+            _logger.SaveLogs();
+        }
+
+        private void toolStripMenuItemClearLogs_Click(object sender, EventArgs e)
+        {
+            _logger.ClearLogs();
+        }
     }
 }
