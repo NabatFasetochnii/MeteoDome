@@ -11,9 +11,6 @@ namespace MeteoDome
 {
     public partial class MainForm : Form
     {
-        // private const int ZdNight = 102;
-        // private const int ZdFlat = 96;
-        // private const int SkyTempForCloseDome = -16;
         private const string BadString = "Weather is too bad to open dome";
         private const string GoodString = "Weather is good to open dome";
         private const double Tolerance = 1e-6;
@@ -40,16 +37,12 @@ namespace MeteoDome
         private bool _isObsCanRun;
         private bool _isObsRunning;
         private bool _isShutterNorthOpen;
-
         private bool _isShutterSouthOpen;
-
-        // private int _isWeatherGood = -1;
         private double[] _seeing = {-1, -1};
         private double[] _skyIr = {-1, -1};
         private double[] _skyVis = {-1, -1};
         private double _sunZd = -1;
         private double _wind = -1;
-        // private bool _work = true;
 
         public MainForm()
         {
@@ -394,6 +387,7 @@ namespace MeteoDome
                 else if (_sunZd > MeteoDb.SunZdFlat)
                     label_Sun.ForeColor = Color.Lime;
                 else if (_sunZd > MeteoDb.SunZdDomeOpen) label_Sun.ForeColor = Color.DarkOrange;
+                else label_Sun.ForeColor = Color.Red;
             }
 
             void Act2()
@@ -433,7 +427,7 @@ namespace MeteoDome
             var buttons = _domeSerialDevice.Buttons;
             var timeoutNorth = _domeSerialDevice.TimeoutNorth;
             var timeoutSouth = _domeSerialDevice.TimeoutSouth;
-            var initflag = Convert.ToBoolean(_domeSerialDevice.InitFlag);
+            var initFlag = Convert.ToBoolean(_domeSerialDevice.InitFlag);
 
             if (power[5] & power[6])
             {
@@ -738,7 +732,7 @@ namespace MeteoDome
                 Invoke(act);
             else
                 act();
-            checkBox_initflag.Checked = initflag;
+            checkBox_initflag.Checked = initFlag;
         }
 
         private void CheckWeather()
@@ -774,6 +768,7 @@ namespace MeteoDome
                     }
 
                     _checkWeatherForDome = 3;
+                    return;
                     // // night
                 }
             }
