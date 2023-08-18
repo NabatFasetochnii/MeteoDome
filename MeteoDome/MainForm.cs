@@ -74,6 +74,7 @@ namespace MeteoDome
             var socks = new Socks(_logger, ref _seeing, ref _skyIr, ref _skyVis,
                 ref _sunZd, ref _wind, ref _isFlat, ref _isObsRunning);
             socks.StartListening();
+            timerSet.Enabled = true;
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)

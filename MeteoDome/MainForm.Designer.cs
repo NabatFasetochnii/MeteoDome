@@ -417,7 +417,7 @@
             // 
             // timerSet
             // 
-            this.timerSet.Enabled = true;
+            this.timerSet.Enabled = false;
             this.timerSet.Interval = 1000;
             this.timerSet.Tick += new System.EventHandler(this.TimerSetTick);
             // 

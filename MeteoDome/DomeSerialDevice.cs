@@ -201,7 +201,9 @@ namespace MeteoDome
                     bits = new BitArray(new[] {gar[0]});
                     for (var i = 0; i < bits.Count / 2; i++) // HACK Reverse order of bits variable
                     {
-                        (bits[i], bits[bits.Count - i - 1]) = (bits[bits.Count - i - 1], bits[i]);
+                        var buf = bits[i];
+                        bits[i] = bits[bits.Count - i - 1];
+                        bits[bits.Count - i - 1] = buf;
                     }
                 }
 
