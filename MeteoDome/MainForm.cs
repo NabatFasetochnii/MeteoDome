@@ -417,8 +417,11 @@ namespace MeteoDome
         private void TimerSetTick(object sender, EventArgs e)
         {
             toolStripStatusLabel.Text = $@"UTC: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}";
-            SetMeteo();
             SetDome();
+            if (_counter == 1)
+            {
+                SetMeteo();   
+            }
         }
 
         private void SetDome()
