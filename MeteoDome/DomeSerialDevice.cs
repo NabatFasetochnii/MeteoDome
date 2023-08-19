@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO.Ports;
-using System.Threading;
 using System.Timers;
 using Timer = System.Timers.Timer;
 
@@ -11,9 +10,7 @@ namespace MeteoDome
     public class DomeSerialDevice
     {
         private static readonly Timer ComTimer = new Timer(); //timer for Serial port communication delay
-
-        // private long _magicCounter = 0;
-        // private BufferBlock<Consumer> consumers = new BufferBlock<Consumer>();
+        private static readonly Timer TasksTimer = new Timer(); //timer for Waiters
         private static readonly List<string> Waiters = new List<string>();
 
         private readonly string[] _commands =
@@ -29,7 +26,6 @@ namespace MeteoDome
         };
 
         private readonly SerialPort _serialPort = new SerialPort();
-        private Thread _loopThreadForQuery;
         public BitArray Buttons = new BitArray(8, false);
 
         //serial port
@@ -54,7 +50,7 @@ namespace MeteoDome
         {
             Close_Port();
             _serialPort.Dispose();
-            _loopThreadForQuery.Abort();
+            
         }
 
         public bool Init()
@@ -62,23 +58,21 @@ namespace MeteoDome
             ComTimer.Elapsed += OnTimedEvent_Com;
             ComTimer.Interval = 1000; // ожидание ответа микроконтроллера 1000мс
             _serialPort.DataReceived += SerialPort_DataReceived;
-            // ComTimer.Start();
+            ComTimer.Start();
             OpenPort();
-            _loopThreadForQuery = new Thread(Looper);
-            _loopThreadForQuery.Start();
+            TasksTimer.Elapsed += Looper;
+            TasksTimer.Interval = 140;
+            TasksTimer.Start();
             return _transmissionEnabled;
         }
-
-        private void Looper()
+    
+        private void Looper(object sender, ElapsedEventArgs e)
         {
-            while (true)
-            {
-                if (!_serialPort.IsOpen) break;
-                if (!_transmissionEnabled) continue;
-                if (Waiters.Count == 0) continue;
-                Write2Serial(Waiters[0]);
-                Waiters.RemoveAt(0);
-            }
+            if (!_serialPort.IsOpen) return;
+            if (!_transmissionEnabled) return;
+            if (Waiters.Count == 0) return;
+            Write2Serial(Waiters[0]);
+            Waiters.RemoveAt(0);
         }
 
         private void OpenPort()

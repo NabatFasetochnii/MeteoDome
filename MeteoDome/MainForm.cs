@@ -15,34 +15,22 @@ namespace MeteoDome
         private const string GoodString = "Weather is good to open dome";
         private const double Tolerance = 1e-6;
         private static readonly string Path = Directory.GetCurrentDirectory();
-
+        private readonly Logger _logger;
         private static readonly Timer MeteoTimer = new Timer(); //clock timer and status check timer
 
         ////globals for dome
         private readonly DomeSerialDevice _domeSerialDevice = new DomeSerialDevice();
 
-        private readonly Logger _logger;
-        // private static readonly Timer DomeTimer = new Timer(); //clock timer and status check timer
-
         ////globals for database
         private readonly MeteoDb _meteo;
         private short _checkWeatherForDome = -1;
         private short _counter;
-
-        // private int _counter;
         private BitArray _dome = new BitArray(8);
         private bool _isDomeCanOpen;
         private bool _isFirst = true;
-        private bool _isFlat;
         private bool _isObsCanRun;
-        private bool _isObsRunning;
         private bool _isShutterNorthOpen;
         private bool _isShutterSouthOpen;
-        private double[] _seeing = {-1, -1};
-        private double[] _skyIr = {-1, -1};
-        private double[] _skyVis = {-1, -1};
-        private double _sunZd = -1;
-        private double _wind = -1;
 
         public MainForm()
         {
@@ -71,8 +59,7 @@ namespace MeteoDome
             MeteoTimer.Start();
             _domeSerialDevice.UpDate();
 
-            var socks = new Socks(_logger, ref _seeing, ref _skyIr, ref _skyVis,
-                ref _sunZd, ref _wind, ref _isFlat, ref _isObsRunning);
+            var socks = new Socks(_logger);
             socks.StartListening();
             timerSet.Enabled = true;
         }
@@ -111,18 +98,25 @@ namespace MeteoDome
 
         private void GetMeteo()
         {
-            _skyIr = _meteo.Get_Sky_IR(); // return [sky_tmp, sky_tmp_std], [-1,-1] - disconnected, [0,-1] - old data
-            _skyVis = _meteo
+            var skyIr = _meteo.Get_Sky_IR(); // return [sky_tmp, sky_tmp_std], [-1,-1] - disconnected, [0,-1] - old data
+            var skyVis = _meteo
                 .Get_Sky_VIS(); // return [extinction, extinction_std], [-1,-1] - disconnected, [0,-1] - old data
-            _seeing = _meteo
+            var seeing = _meteo
                 .Get_Seeing(); // return [seeing, seeing_extinction], [-1,-1] - disconnected, [0,-1] - old data
-            _wind = _meteo.Get_Wind(); // return wind, -1 - disconnected, 100 - old data
-            _sunZd = MeteoDb.Sun_ZD(); //return Sun zenith distance (degree)
+    
+            WeatherDataCollector.SkyTemp = skyIr[0];
+            WeatherDataCollector.SkyTempStd = skyIr[1];
+            WeatherDataCollector.Extinction = skyVis[0];
+            WeatherDataCollector.ExtinctionStd = skyVis[1];
+            WeatherDataCollector.Seeing = seeing[0];
+            WeatherDataCollector.SeeingExtinction = seeing[1];
+            WeatherDataCollector.Wind = _meteo.Get_Wind(); // return wind, -1 - disconnected, 100 - old data
+            WeatherDataCollector.SunZd = MeteoDb.Sun_ZD(); //return Sun zenith distance (degree)
         }
 
         private void SetMeteo()
         {
-            if (Math.Abs(_skyIr[0] + 1) < Tolerance)
+            if (Math.Abs(WeatherDataCollector.SkyTemp + 1) < Tolerance)
             {
                 void Action()
                 {
@@ -135,7 +129,7 @@ namespace MeteoDome
                 else
                     Action();
             }
-            else if ((_skyIr[0] == 0) & (Math.Abs(_skyIr[1] + 1) < Tolerance))
+            else if ((WeatherDataCollector.SkyTemp == 0) & (Math.Abs(WeatherDataCollector.SkyTempStd + 1) < Tolerance))
             {
                 void Action()
                 {
@@ -152,12 +146,12 @@ namespace MeteoDome
             {
                 void Action()
                 {
-                    label_SkyTemp.Text = @"Sky temperature (deg): " + _skyIr[0].ToString("00.0");
-                    if (_skyIr[0] < MeteoDb.MinSkyTemp)
+                    label_SkyTemp.Text = @"Sky temperature (deg): " + WeatherDataCollector.SkyTemp.ToString("00.0");
+                    if (WeatherDataCollector.SkyTemp < MeteoDb.MinSkyTemp)
                     {
                         label_SkyTemp.ForeColor = Color.Green;
                     }
-                    else if (_skyIr[0] > MeteoDb.MinSkyTemp && _skyIr[0] < MeteoDb.MaxSkyTemp)
+                    else if (WeatherDataCollector.SkyTemp > MeteoDb.MinSkyTemp && WeatherDataCollector.SkyTemp < MeteoDb.MaxSkyTemp)
                     {
                         label_SkyTemp.ForeColor = Color.DarkOrange;
                     }
@@ -178,7 +172,7 @@ namespace MeteoDome
             else
                 Act1();
 
-            if (Math.Abs(_skyVis[0] + 1) < Tolerance)
+            if (Math.Abs(WeatherDataCollector.Extinction + 1) < Tolerance)
             {
                 void Action()
                 {
@@ -191,7 +185,7 @@ namespace MeteoDome
                 else
                     Action();
             }
-            else if ((_skyVis[0] == 0) & (Math.Abs(_skyVis[1] + 1) < Tolerance))
+            else if ((WeatherDataCollector.Extinction == 0) & (Math.Abs(WeatherDataCollector.ExtinctionStd + 1) < Tolerance))
             {
                 void Action()
                 {
@@ -208,12 +202,12 @@ namespace MeteoDome
             {
                 void Action()
                 {
-                    label_Allsky_ext.Text = @"AllSky extinction (mag): " + _skyVis[0].ToString("00.0");
-                    if (_skyVis[0] < MeteoDb.MinExtinction)
+                    label_Allsky_ext.Text = @"AllSky extinction (mag): " + WeatherDataCollector.Extinction.ToString("00.0");
+                    if (WeatherDataCollector.Extinction < MeteoDb.MinExtinction)
                     {
                         label_Allsky_ext.ForeColor = Color.Green;
                     }
-                    else if (_skyVis[0] > MeteoDb.MinExtinction && _skyVis[0] < MeteoDb.MaxExtinction)
+                    else if (WeatherDataCollector.Extinction > MeteoDb.MinExtinction && WeatherDataCollector.Extinction < MeteoDb.MaxExtinction)
                     {
                         label_Allsky_ext.ForeColor = Color.DarkOrange;
                     }
@@ -233,7 +227,7 @@ namespace MeteoDome
                 Invoke((Action) Act2);
             else
                 Act2();
-            if (Math.Abs(_seeing[0] + 1) < Tolerance)
+            if (Math.Abs(WeatherDataCollector.Seeing + 1) < Tolerance)
             {
                 void Action()
                 {
@@ -245,7 +239,7 @@ namespace MeteoDome
                 else
                     Action();
             }
-            else if ((_seeing[0] == 0) & (Math.Abs(_skyVis[1] + 1) < Tolerance))
+            else if ((WeatherDataCollector.Seeing == 0) & (Math.Abs(WeatherDataCollector.ExtinctionStd + 1) < Tolerance))
             {
                 void Action()
                 {
@@ -261,7 +255,7 @@ namespace MeteoDome
             {
                 void Action()
                 {
-                    label_Seeing_ext.Text = @"Seeing extinction (mag): " + _seeing[1].ToString("00.0");
+                    label_Seeing_ext.Text = @"Seeing extinction (mag): " + WeatherDataCollector.SeeingExtinction.ToString("00.0");
                 }
 
                 if (InvokeRequired)
@@ -274,7 +268,7 @@ namespace MeteoDome
                 Invoke((Action) Act3);
             else
                 Act3();
-            switch (_wind)
+            switch (WeatherDataCollector.Wind)
             {
                 case -1:
 
@@ -312,10 +306,10 @@ namespace MeteoDome
 
                     void Action3()
                     {
-                        label_Wind.Text = @"Wind (m/s): " + _wind.ToString("00.0");
-                        if (_wind < MeteoDb.MinWind)
+                        label_Wind.Text = @"Wind (m/s): " + WeatherDataCollector.Wind.ToString("00.0");
+                        if (WeatherDataCollector.Wind < MeteoDb.MinWind)
                             label_Wind.ForeColor = Color.Green;
-                        else if (_wind > MeteoDb.MinWind && _wind < MeteoDb.MaxWind)
+                        else if (WeatherDataCollector.Wind > MeteoDb.MinWind && WeatherDataCollector.Wind < MeteoDb.MaxWind)
                             label_Wind.ForeColor = Color.DarkOrange;
                         else
                             label_Wind.ForeColor = Color.Red;
@@ -377,26 +371,26 @@ namespace MeteoDome
 
             void Act3()
             {
-                label_Seeing.Text = @"Seeing (arcsec): " + _seeing[0].ToString("00.0");
+                label_Seeing.Text = @"Seeing (arcsec): " + WeatherDataCollector.Seeing.ToString("00.0");
             }
 
             void Action4()
             {
-                label_Sun.Text = @"Sun zenith distance (deg): " + _sunZd.ToString("00.0");
-                if (_sunZd > MeteoDb.SunZdNight)
+                label_Sun.Text = @"Sun zenith distance (deg): " + WeatherDataCollector.SunZd.ToString("00.0");
+                if (WeatherDataCollector.SunZd > MeteoDb.SunZdNight)
                     label_Sun.ForeColor = Color.Green;
-                else if (_sunZd > MeteoDb.SunZdFlat)
+                else if (WeatherDataCollector.SunZd > MeteoDb.SunZdFlat)
                     label_Sun.ForeColor = Color.Lime;
-                else if (_sunZd > MeteoDb.SunZdDomeOpen) label_Sun.ForeColor = Color.DarkOrange;
+                else if (WeatherDataCollector.SunZd > MeteoDb.SunZdDomeOpen) label_Sun.ForeColor = Color.DarkOrange;
                 else label_Sun.ForeColor = Color.Red;
             }
 
             void Act2()
             {
-                label_Allsky_ext_STD.Text = @"AllSky extinction STD (mag): " + _skyVis[1].ToString("00.00");
-                if (_skyVis[1] < MeteoDb.MinExtinctionStd)
+                label_Allsky_ext_STD.Text = @"AllSky extinction STD (mag): " + WeatherDataCollector.ExtinctionStd.ToString("00.00");
+                if (WeatherDataCollector.ExtinctionStd < MeteoDb.MinExtinctionStd)
                     label_Allsky_ext_STD.ForeColor = Color.Green;
-                else if (_skyVis[1] > MeteoDb.MinExtinctionStd && _skyVis[1] < MeteoDb.MaxExtinctionStd)
+                else if (WeatherDataCollector.ExtinctionStd > MeteoDb.MinExtinctionStd && WeatherDataCollector.ExtinctionStd < MeteoDb.MaxExtinctionStd)
                     label_Allsky_ext_STD.ForeColor = Color.DarkOrange;
                 else
                     label_Allsky_ext_STD.ForeColor = Color.Red;
@@ -404,10 +398,10 @@ namespace MeteoDome
 
             void Act1()
             {
-                label_SkyTempSTD.Text = @"Sky temperature STD (deg): " + _skyIr[1].ToString("00.00");
-                if (_skyIr[1] < MeteoDb.MinSkyStd)
+                label_SkyTempSTD.Text = @"Sky temperature STD (deg): " + WeatherDataCollector.SkyTempStd.ToString("00.00");
+                if (WeatherDataCollector.SkyTempStd < MeteoDb.MinSkyStd)
                     label_SkyTempSTD.ForeColor = Color.Green;
-                else if (_skyIr[1] > MeteoDb.MinSkyStd && _skyIr[1] < MeteoDb.MaxSkyStd)
+                else if (WeatherDataCollector.SkyTempStd > MeteoDb.MinSkyStd && WeatherDataCollector.SkyTempStd < MeteoDb.MaxSkyStd)
                     label_SkyTempSTD.ForeColor = Color.DarkOrange;
                 else
                     label_SkyTempSTD.ForeColor = Color.Red;
@@ -743,20 +737,20 @@ namespace MeteoDome
         {
             if (_counter == 0 || _counter == 60)
             {
-                if ((_skyVis[0] > 0) & (_skyVis[1] >= 0))
-                    _isObsCanRun = MeteoDb.Get_Weather_Obs(_isObsCanRun, _skyVis[0], _skyVis[1]);
-                if ((_skyIr[0] < -1) & (_skyIr[1] >= 0) & (-1 < _wind) & (_wind < 100))
+                if ((WeatherDataCollector.Extinction > 0) & (WeatherDataCollector.ExtinctionStd >= 0))
+                    _isObsCanRun = MeteoDb.Get_Weather_Obs(_isObsCanRun, WeatherDataCollector.Extinction, WeatherDataCollector.ExtinctionStd);
+                if ((WeatherDataCollector.SkyTemp < -1) & (WeatherDataCollector.SkyTempStd >= 0) & (-1 < WeatherDataCollector.Wind) & (WeatherDataCollector.Wind < 100))
                     _isDomeCanOpen =
                         MeteoDb.Get_Weather_Dome(_isShutterNorthOpen & _isShutterSouthOpen,
-                            _skyIr[0], _skyIr[1], _wind);
+                            WeatherDataCollector.SkyTemp, WeatherDataCollector.SkyTempStd, WeatherDataCollector.Wind);
             }
 
-            if (_isDomeCanOpen & (_sunZd > MeteoDb.SunZdDomeOpen))
+            if (_isDomeCanOpen & (WeatherDataCollector.SunZd > MeteoDb.SunZdDomeOpen))
             {
                 _checkWeatherForDome = 1;
                 if (_isObsCanRun)
                 {
-                    if (_sunZd < MeteoDb.SunZdFlat)
+                    if (WeatherDataCollector.SunZd < MeteoDb.SunZdFlat)
                     {
                         // cloudy or too bright
                         _checkWeatherForDome = -1;
@@ -764,7 +758,7 @@ namespace MeteoDome
                     }
 
                     //clear
-                    if (_sunZd < MeteoDb.SunZdNight)
+                    if (WeatherDataCollector.SunZd < MeteoDb.SunZdNight)
                     {
                         _checkWeatherForDome = 2;
                         // dusk
@@ -788,19 +782,19 @@ namespace MeteoDome
                 open_dome();
                 switch (_checkWeatherForDome)
                 {
-                    case 2 when !_isFlat:
+                    case 2 when !WeatherDataCollector.IsFlat:
                         //TODO FLAT
                         //obs flat
                         _logger.AddLogEntry("Flat can start");
-                        _isFlat = true;
+                        WeatherDataCollector.IsFlat = true;
                         return;
                     case 3:
                     {
                         // night
-                        _isFlat = false;
-                        if (_isObsRunning) return;
+                        WeatherDataCollector.IsFlat = false;
+                        if (WeatherDataCollector.IsObsRunning) return;
                         _logger.AddLogEntry("Observation can start");
-                        _isObsRunning = true;
+                        WeatherDataCollector.IsObsRunning = true;
                         return;
                     }
                 }
@@ -813,11 +807,11 @@ namespace MeteoDome
 
         private void stop_obs()
         {
-            _isFlat = false;
+            WeatherDataCollector.IsFlat = false;
             close_dome();
-            if (!_isObsRunning) return;
+            if (!WeatherDataCollector.IsObsRunning) return;
             _logger.AddLogEntry("Observation stop");
-            _isObsRunning = false;
+            WeatherDataCollector.IsObsRunning = false;
             // Park(); TODO
         }
 
