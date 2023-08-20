@@ -12,8 +12,8 @@ namespace MeteoDome
     public class Socks
     {
         private const int Port = 8085;
-        private Logger _logger;
-        private Thread _loop;
+        private readonly Logger _logger;
+        private readonly Thread _loop;
         private readonly TcpListener _server;
         private StreamReader _streamReader;
         private StreamWriter _streamWriter;
@@ -24,7 +24,7 @@ namespace MeteoDome
             _logger = logger;
             _server = TcpListener.Create(Port);
             _loop = new Thread(MainManager)
-            {   
+            {
                 IsBackground = true
             };
         }
@@ -46,89 +46,101 @@ namespace MeteoDome
                     break;
                 }
 
-                try
+                _tcpClient = await _server.AcceptTcpClientAsync();
+                _logger.AddLogEntry($"Входящее подключение: {_tcpClient.Client.RemoteEndPoint}");
+                _streamReader = new StreamReader(_tcpClient.GetStream());
+                _streamWriter = new StreamWriter(_tcpClient.GetStream());
+                _streamWriter.AutoFlush = true;
+
+                while (true)
                 {
-                    _tcpClient = await _server.AcceptTcpClientAsync();
-                    _logger.AddLogEntry($"Входящее подключение: {_tcpClient.Client.RemoteEndPoint}");
-                    _streamReader = new StreamReader(_tcpClient.GetStream());
-                    _streamWriter = new StreamWriter(_tcpClient.GetStream());
-                    _streamWriter.AutoFlush = true;
-                    if (_tcpClient.Connected)
+                    try
                     {
-                        var get = await _streamReader.ReadLineAsync();
-                        switch (get)
+                        if (_tcpClient.Connected)
                         {
-                            case "get full":
-                                await _streamWriter.WriteLineAsync(WeatherDataCollector.GetStringSockMessage());
-                                break;
-                            case "ping":
-                                await _streamWriter.WriteLineAsync("pong");
-                                break;
-                            case "sky":
+                            var get = await _streamReader.ReadLineAsync();
+                            switch (get)
                             {
-                                // отправляем ответ
-                                await _streamWriter.WriteLineAsync(WeatherDataCollector.SkyTemp.ToString("00.0"));
-                                break;
-                            }
-                            case "sky std":
-                            {
-                                await _streamWriter.WriteLineAsync(WeatherDataCollector.SkyTempStd.ToString("00.0"));
-                                break;
-                            }
-                            case "extinction":
-                            {
-                                await _streamWriter.WriteLineAsync(WeatherDataCollector.Extinction.ToString("00.0"));
-                                break;
-                            }
-                            case "extinction std":
-                            {
-                                await _streamWriter.WriteLineAsync(WeatherDataCollector.ExtinctionStd.ToString("00.0"));
-                                break;
-                            }
-                            case "seeing":
-                            {
-                                await _streamWriter.WriteLineAsync(WeatherDataCollector.Seeing.ToString("00.0"));
-                                break;
-                            }
-                            case "seeing_extinction":
-                            {
-                                await _streamWriter.WriteLineAsync(WeatherDataCollector.SeeingExtinction.ToString("00.0"));
-                                break;
-                            }
-                            case "wind":
-                            {
-                                await _streamWriter.WriteLineAsync(WeatherDataCollector.Wind.ToString("00.0"));
-                                break;
-                            }
-                            case "sun":
-                            {
-                                await _streamWriter.WriteLineAsync(WeatherDataCollector.SunZd.ToString("00.0"));
-                                break;
-                            }
-                            case "obs":
-                            {
-                                await _streamWriter.WriteLineAsync(WeatherDataCollector.IsObsRunning.ToString());
-                                break;
-                            }
-                            case "flat":
-                            {
-                                await _streamWriter.WriteLineAsync(WeatherDataCollector.IsFlat.ToString());
-                                break;
-                            }
-                            default:
-                            {
-                                _logger.AddLogEntry($"Get unknown command: {get}");
-                                await _streamWriter.WriteLineAsync("Unknown command");
-                                break;
+                                case "full":
+                                    await _streamWriter.WriteLineAsync(WeatherDataCollector.GetStringSockMessage());
+                                    break;
+                                case "ping":
+                                    await _streamWriter.WriteLineAsync("pong");
+                                    break;
+                                case "sky":
+                                {
+                                    // отправляем ответ
+                                    await _streamWriter.WriteLineAsync(WeatherDataCollector.SkyTemp.ToString("00.0"));
+                                    break;
+                                }
+                                case "sky std":
+                                {
+                                    await _streamWriter.WriteLineAsync(
+                                        WeatherDataCollector.SkyTempStd.ToString("00.0"));
+                                    break;
+                                }
+                                case "ext":
+                                {
+                                    await _streamWriter.WriteLineAsync(
+                                        WeatherDataCollector.Extinction.ToString("00.0"));
+                                    break;
+                                }
+                                case "ext std":
+                                {
+                                    await _streamWriter.WriteLineAsync(
+                                        WeatherDataCollector.ExtinctionStd.ToString("00.0"));
+                                    break;
+                                }
+                                case "see":
+                                {
+                                    await _streamWriter.WriteLineAsync(WeatherDataCollector.Seeing.ToString("00.0"));
+                                    break;
+                                }
+                                case "see ext":
+                                {
+                                    await _streamWriter.WriteLineAsync(
+                                        WeatherDataCollector.SeeingExtinction.ToString("00.0"));
+                                    break;
+                                }
+                                case "wind":
+                                {
+                                    await _streamWriter.WriteLineAsync(WeatherDataCollector.Wind.ToString("00.0"));
+                                    break;
+                                }
+                                case "sun":
+                                {
+                                    await _streamWriter.WriteLineAsync(WeatherDataCollector.SunZd.ToString("00.0"));
+                                    break;
+                                }
+                                case "obs":
+                                {
+                                    await _streamWriter.WriteLineAsync(WeatherDataCollector.IsObsRunning.ToString());
+                                    break;
+                                }
+                                case "flat":
+                                {
+                                    await _streamWriter.WriteLineAsync(WeatherDataCollector.IsFlat.ToString());
+                                    break;
+                                }
+                                default:
+                                {
+                                    _logger.AddLogEntry($"Recieved unknown command: {get}");
+                                    await _streamWriter.WriteLineAsync("unknw");
+                                    break;
+                                }
                             }
                         }
+                        else
+                        {
+                            break;
+                        }
                     }
-                }
-                catch (Exception e)
-                {
-                    _logger.AddLogEntry("Socks error");
-                    _logger.AddLogEntry(e.Message);
-                    Disconnect();
+                    catch (Exception e)
+                    {
+                        _logger.AddLogEntry("Socks error");
+                        _logger.AddLogEntry(e.Message);
+                        Disconnect();
+                    }
                 }
             }
         }
