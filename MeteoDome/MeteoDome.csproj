@@ -30,6 +30,7 @@
         <BootstrapperEnabled>true</BootstrapperEnabled>
         <NuGetPackageImportStamp>
         </NuGetPackageImportStamp>
+        <ApplicationIcon>storm.ico</ApplicationIcon>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
