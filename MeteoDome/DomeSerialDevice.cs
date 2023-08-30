@@ -172,9 +172,10 @@ namespace MeteoDome
                 indata = _serialPort.ReadLine(); //read answer [1ap=1234]
                 // Logger.AddLogEntry("get msg "+indata);
             }
-            catch
+            catch (Exception exception)
             {
                 // ignored
+                Logger.AddLogEntry(exception.Message);
             }
 
             var bits = new BitArray(8);

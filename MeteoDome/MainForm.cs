@@ -51,7 +51,13 @@ namespace MeteoDome
             //         Environment.Exit(1);
 
             if (!_domeSerialDevice.Init())
+            {
                 MessageBox.Show(@"Can't open Dome serial port", @"OK", MessageBoxButtons.OK);
+            }
+            else
+            {
+                groupBox_Dome.Text = $@"Dome (COMPORT {_domeSerialDevice.ComId})";
+            }
 
             //create timer for main loop
             MeteoTimer.Elapsed += TimerGetClock;
@@ -899,7 +905,6 @@ namespace MeteoDome
                         {
                             case "Dome_ComID":
                                 _domeSerialDevice.ComId = substrings[1];
-                                groupBox_Dome.Text = $@"Dome (COMPORT {substrings[1]})";
                                 break;
                             //case "Delay":
                             //    Delay = Convert.ToInt32(substrings[1]);
