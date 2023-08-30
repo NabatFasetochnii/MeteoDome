@@ -899,6 +899,7 @@ namespace MeteoDome
                         {
                             case "Dome_ComID":
                                 _domeSerialDevice.ComId = substrings[1];
+                                groupBox_Dome.Text = $@"Dome (COMPORT {substrings[1]})";
                                 break;
                             //case "Delay":
                             //    Delay = Convert.ToInt32(substrings[1]);
