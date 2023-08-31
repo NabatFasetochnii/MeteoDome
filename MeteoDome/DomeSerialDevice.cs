@@ -12,7 +12,8 @@ namespace MeteoDome
         private static readonly Timer ComTimer = new Timer(); //timer for Serial port communication delay
         private static readonly Timer TasksTimer = new Timer(); //timer for Waiters
         private static readonly List<string> Waiters = new List<string>();
-
+        public DateTime domeUpdateDateTime;
+        
         private readonly string[] _commands =
         {
             "1gcp",
@@ -233,6 +234,7 @@ namespace MeteoDome
                         InitFlag = int.Parse(indata.Substring(5, 1));
                         break;
                 }
+                domeUpdateDateTime = DateTime.UtcNow;
             }
             catch (Exception exception)
             {

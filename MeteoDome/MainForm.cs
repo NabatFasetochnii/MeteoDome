@@ -20,6 +20,7 @@ namespace MeteoDome
 
         ////globals for dome
         private readonly DomeSerialDevice _domeSerialDevice = new DomeSerialDevice();
+        private const short DomeTimeoutUpdateAlarm = 3; // in min
 
         ////globals for database
         private readonly MeteoDb _meteo;
@@ -97,8 +98,12 @@ namespace MeteoDome
                 CheckWeather();
                 if (checkBox_AutoDome.Checked) Autopilot();
             }
-
+                
             _counter++;
+            if ((_domeSerialDevice.domeUpdateDateTime - DateTime.UtcNow).TotalMinutes > DomeTimeoutUpdateAlarm)
+            {
+                groupBox_Dome.Text = $@"Dome (OLD DATA)";
+            }
         }
 
 
