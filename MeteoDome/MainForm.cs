@@ -20,7 +20,7 @@ namespace MeteoDome
 
         ////globals for dome
         private readonly DomeSerialDevice _domeSerialDevice = new DomeSerialDevice();
-        private const short DomeTimeoutUpdateAlarm = 3; // in min
+        private const float DomeTimeoutUpdateAlarm = 0.5f; // in min
 
         ////globals for database
         private readonly MeteoDb _meteo;
@@ -100,13 +100,20 @@ namespace MeteoDome
             }
                 
             _counter++;
-            if ((_domeSerialDevice.domeUpdateDateTime - DateTime.UtcNow).TotalMinutes > DomeTimeoutUpdateAlarm)
+            if ((DateTime.UtcNow - _domeSerialDevice.domeUpdateDateTime ).TotalMinutes > DomeTimeoutUpdateAlarm)
             {
-                groupBox_Dome.Text = $@"Dome (OLD DATA)";
+                groupBox_Dome.Invoke((MethodInvoker) delegate
+                {
+                    groupBox_Dome.Text = $@"Dome (OLD DATA)";
+                });
+
             }
             else
             {
-                groupBox_Dome.Text = $@"Dome (COMPORT {_domeSerialDevice.ComId})";
+                groupBox_Dome.Invoke((MethodInvoker) delegate
+                {
+                    groupBox_Dome.Text = $@"Dome (COMPORT {_domeSerialDevice.ComId})";
+                });
             }
         }
 
