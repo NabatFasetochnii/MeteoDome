@@ -104,6 +104,10 @@ namespace MeteoDome
             {
                 groupBox_Dome.Text = $@"Dome (OLD DATA)";
             }
+            else
+            {
+                groupBox_Dome.Text = $@"Dome (COMPORT {_domeSerialDevice.ComId})";
+            }
         }
 
 
