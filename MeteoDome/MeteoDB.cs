@@ -4,34 +4,33 @@ using Npgsql;
 
 namespace MeteoDome
 {
-    public class MeteoDb
+    public static class MeteoDb
     {
-        private const double Latitude = 57.036537;
-        private const double Longitude = 59.545735;
-        public const int MaxWind = 3;
-        public const int MinWind = 6;
-        public const int MinSkyTemp = -18;
-        public const int MaxSkyTemp = -14;
-        public const int MaxSkyStd = 3;
-        public const int MinSkyStd = 1;
-        public const double MinExtinction = 0.3;
-        public const double MinExtinctionStd = 0.1;
-        public const double MaxExtinction = 0.6;
-        public const double MaxExtinctionStd = 0.2;
-        public const int SunZdDomeOpen = 94;
-        public const int SunZdFlat = 96;
-        public const int SunZdNight = 102;
+        public static float Latitude;
+        public static float Longitude;
+        public static short MaxWind;
+        public static short MinWind;
+        public static short MinSkyTemp;
+        public static short MaxSkyTemp;
+        public static short MaxSkyStd;
+        public static short MinSkyStd;
+        public static float MinExtinction;
+        public static float MinExtinctionStd;
+        public static float MaxExtinction;
+        public static float MaxExtinctionStd;
+        public static short SunZdDomeOpen;
+        public static short SunZdFlat;
+        public static short SunZdNight;
 
-        private readonly Logger _logger;
+        public static string MeteoServer;
+        public static string Port;
+        public static string UserId;
+        public static string Password;
+        public static string Database;
 
         ////globals
-        private const string ServicesConnString =
-            "Server=192.168.240.26;Port=5432;User Id=services;Password=services; Database=services;";
-
-        public MeteoDb(Logger logger)
-        {
-            _logger = logger;
-        }
+        private static readonly string ServicesConnString =
+            $"Server={MeteoServer};Port={Port};User Id={UserId};Password={Password}; Database={Database};";
 
         private static double Ut2Jd(DateTime ut)
         {
@@ -114,7 +113,7 @@ namespace MeteoDome
         }
 
         //return [-1,-1] not connected, [0,-1] old data, [extinction, extinction_std] good data
-        public double[] Get_Sky_VIS()
+        public static double[] Get_Sky_VIS()
         {
             double dT = 0;
             var result = new double[] {-1, -1};
@@ -164,8 +163,8 @@ namespace MeteoDome
                 }
                 catch (Exception e)
                 {
-                    _logger.AddLogEntry(e.Message);
-                    _logger.AddLogEntry("MeteoDB: ERROR SKY VIS");
+                    Logger.AddLogEntry(e.Message);
+                    Logger.AddLogEntry("MeteoDB: ERROR SKY VIS");
                 }
             }
 
@@ -173,7 +172,7 @@ namespace MeteoDome
         }
 
         //return [-1,-1] not connected, [0,-1] old data, [sky_tmp, sky_tmp_std] good data
-        public double[] Get_Sky_IR()
+        public static double[] Get_Sky_IR()
         {
             double dT = 0;
             var result = new double[] {-1, -1};
@@ -226,8 +225,8 @@ namespace MeteoDome
                 }
                 catch (Exception e)
                 {
-                    _logger.AddLogEntry(e.Message);
-                    _logger.AddLogEntry("MeteoDB: ERROR SKY IR");
+                    Logger.AddLogEntry(e.Message);
+                    Logger.AddLogEntry("MeteoDB: ERROR SKY IR");
                 }
             }
 
@@ -235,7 +234,7 @@ namespace MeteoDome
         }
 
         //return: -1 - not connected, 100 - old data, wind
-        public double Get_Wind()
+        public static double Get_Wind()
         {
             double dT = 0;
             double result = -1;
@@ -282,8 +281,8 @@ namespace MeteoDome
                 }
                 catch (Exception e)
                 {
-                    _logger.AddLogEntry(e.Message);
-                    _logger.AddLogEntry("MeteoDB: ERROR WIND");
+                    Logger.AddLogEntry(e.Message);
+                    Logger.AddLogEntry("MeteoDB: ERROR WIND");
                 }
             }
 
@@ -291,7 +290,7 @@ namespace MeteoDome
         }
 
         //return [-1,-1] not connected, [0,-1] old data, [seeing, seeing_extinction] good data
-        public double[] Get_Seeing()
+        public static double[] Get_Seeing()
         {
             double dT = 0;
             double[] result = {-1, -1};
@@ -328,8 +327,8 @@ namespace MeteoDome
                 }
                 catch (Exception e)
                 {
-                    _logger.AddLogEntry(e.Message);
-                    _logger.AddLogEntry("MeteoDB: ERROR SEEING");
+                    Logger.AddLogEntry(e.Message);
+                    Logger.AddLogEntry("MeteoDB: ERROR SEEING");
                 }
             }
 

@@ -11,17 +11,15 @@ namespace MeteoDome
 {
     public class Socks
     {
-        private const int Port = 8085;
-        private readonly Logger _logger;
+        public static int Port;
         private readonly Thread _loop;
         private readonly TcpListener _server;
         private StreamReader _streamReader;
         private StreamWriter _streamWriter;
         private TcpClient _tcpClient;
 
-        public Socks(Logger logger)
+        public Socks()
         {
-            _logger = logger;
             _server = TcpListener.Create(Port);
             _loop = new Thread(MainManager)
             {
@@ -32,7 +30,7 @@ namespace MeteoDome
         public void StartListening()
         {
             _server.Start();
-            _logger.AddLogEntry(@"Сервер запущен. Ожидание подключений...");
+            Logger.AddLogEntry(@"Сервер запущен. Ожидание подключений...");
             _loop.Start();
         }
 
@@ -42,12 +40,12 @@ namespace MeteoDome
             {
                 if (_server is null)
                 {
-                    _logger.AddLogEntry("Socks error: _server is null");
+                    Logger.AddLogEntry("Socks error: _server is null");
                     break;
                 }
 
                 _tcpClient = await _server.AcceptTcpClientAsync();
-                _logger.AddLogEntry($"Входящее подключение: {_tcpClient.Client.RemoteEndPoint}");
+                Logger.AddLogEntry($"Входящее подключение: {_tcpClient.Client.RemoteEndPoint}");
                 _streamReader = new StreamReader(_tcpClient.GetStream());
                 _streamWriter = new StreamWriter(_tcpClient.GetStream());
                 _streamWriter.AutoFlush = true;
@@ -124,7 +122,7 @@ namespace MeteoDome
                                 }
                                 default:
                                 {
-                                    _logger.AddLogEntry($"Recieved unknown command: {get}");
+                                    Logger.AddLogEntry($"Recieved unknown command: {get}");
                                     await _streamWriter.WriteLineAsync("unknw");
                                     break;
                                 }
@@ -137,8 +135,8 @@ namespace MeteoDome
                     }
                     catch (Exception e)
                     {
-                        _logger.AddLogEntry("Socks error");
-                        _logger.AddLogEntry(e.Message);
+                        Logger.AddLogEntry("Socks error");
+                        Logger.AddLogEntry(e.Message);
                         Disconnect();
                     }
                 }
@@ -148,7 +146,7 @@ namespace MeteoDome
         private void Disconnect()
         {
             _tcpClient.Dispose();
-            _logger.AddLogEntry("Соединение разорвано");
+            Logger.AddLogEntry("Соединение разорвано");
         }
 
         // public void StopListening()

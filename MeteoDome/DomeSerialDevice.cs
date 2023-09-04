@@ -7,14 +7,14 @@ using Timer = System.Timers.Timer;
 
 namespace MeteoDome
 {
-    public class DomeSerialDevice
+    public static class DomeSerialDevice
     {
         private static readonly Timer ComTimer = new Timer(); //timer for Serial port communication delay
         private static readonly Timer TasksTimer = new Timer(); //timer for Waiters
         private static readonly List<string> Waiters = new List<string>();
-        public DateTime domeUpdateDateTime;
+        public static DateTime DomeUpdateDateTime;
         
-        private readonly string[] _commands =
+        private static readonly string[] Commands =
         {
             "1gcp",
             "1gcb",
@@ -26,39 +26,39 @@ namespace MeteoDome
             "1gca"
         };
 
-        private readonly SerialPort _serialPort = new SerialPort();
-        public BitArray Buttons = new BitArray(8, false);
+        private static readonly SerialPort SerialPort = new SerialPort();
+        public static BitArray Buttons = new BitArray(8, false);
 
         //serial port
-        public string ComId;
+        public static string ComId;
 
-        public BitArray Dome = new BitArray(8, false);
+        public static BitArray Dome = new BitArray(8, false);
 
-        public int InitFlag;
-        public Logger Logger;
+        public static int InitFlag;
+        // public Logger Logger;
 
-        public BitArray Power = new BitArray(8, false);
+        public static BitArray Power = new BitArray(8, false);
 
         // public string Power = "";
         // public BitArray Timeout = new BitArray(8, false);
 
         // public string timeout = "";
-        public int TimeoutNorth = 120;
-        public int TimeoutSouth = 120;
-        private bool _transmissionEnabled;
+        public static int TimeoutNorth = 120;
+        public static int TimeoutSouth = 120;
+        private static bool _transmissionEnabled;
 
-        public void Dispose()
+        public static void Dispose()
         {
             Close_Port();
-            _serialPort.Dispose();
+            SerialPort.Dispose();
             
         }
 
-        public bool Init()
+        public static bool Init()
         {
             ComTimer.Elapsed += OnTimedEvent_Com;
             ComTimer.Interval = 1000; // ожидание ответа микроконтроллера 1000мс
-            _serialPort.DataReceived += SerialPort_DataReceived;
+            SerialPort.DataReceived += SerialPort_DataReceived;
             ComTimer.Start();
             OpenPort();
             TasksTimer.Elapsed += Looper;
@@ -67,28 +67,28 @@ namespace MeteoDome
             return _transmissionEnabled;
         }
     
-        private void Looper(object sender, ElapsedEventArgs e)
+        private static void Looper(object sender, ElapsedEventArgs e)
         {
-            if (!_serialPort.IsOpen) return;
+            if (!SerialPort.IsOpen) return;
             if (!_transmissionEnabled) return;
             if (Waiters.Count == 0) return;
             Write2Serial(Waiters[0]);
             Waiters.RemoveAt(0);
         }
 
-        private void OpenPort()
+        private static void OpenPort()
         {
-            _serialPort.PortName = "COM" + ComId;
-            _serialPort.BaudRate = 9600;
-            _serialPort.DataBits = 8;
+            SerialPort.PortName = "COM" + ComId;
+            SerialPort.BaudRate = 9600;
+            SerialPort.DataBits = 8;
             try
             {
-                _serialPort.Open();
-                if (!_serialPort.IsOpen) return;
-                _serialPort.ReadTimeout = 500;
-                _serialPort.NewLine = "\0"; // Serial commands separator
-                _serialPort.ReceivedBytesThreshold = 6;
-                _serialPort.DiscardInBuffer(); // чистить порт после открытия
+                SerialPort.Open();
+                if (!SerialPort.IsOpen) return;
+                SerialPort.ReadTimeout = 500;
+                SerialPort.NewLine = "\0"; // Serial commands separator
+                SerialPort.ReceivedBytesThreshold = 6;
+                SerialPort.DiscardInBuffer(); // чистить порт после открытия
                 Logger.AddLogEntry("SerialPort opened");
                 _transmissionEnabled = true;
             }
@@ -99,13 +99,13 @@ namespace MeteoDome
             }
         }
 
-        private void Close_Port()
+        private static void Close_Port()
         {
             try
             {
                 ComTimer.Stop();
                 _transmissionEnabled = false;
-                _serialPort.Close();
+                SerialPort.Close();
                 Logger.AddLogEntry("SerialPort closed");
             }
             catch (Exception ex)
@@ -115,9 +115,9 @@ namespace MeteoDome
             }
         }
 
-        public void UpDate()
+        public static void UpDate()
         {
-            foreach (var command in _commands) AddTask(command);
+            foreach (var command in Commands) AddTask(command);
         }
 
         public static void AddTask(string com)
@@ -126,22 +126,22 @@ namespace MeteoDome
         }
 
         //send command without answer
-        private void Write2Serial(string command)
+        private static void Write2Serial(string command)
         {
             try
             {
                 if (command is null) return;
-                if (!_serialPort.IsOpen || !_transmissionEnabled) return;
+                if (!SerialPort.IsOpen || !_transmissionEnabled) return;
                 if (command[1] == 'r' || command[1] == 's') //if run command
                 {
                     _transmissionEnabled = false;
-                    _serialPort.WriteLine(command);
+                    SerialPort.WriteLine(command);
                     _transmissionEnabled = true;
                 }
 
                 if (command[1] != 'g') return;
-                _serialPort.DiscardInBuffer(); //clear input buffer
-                _serialPort.WriteLine(command); //send question
+                SerialPort.DiscardInBuffer(); //clear input buffer
+                SerialPort.WriteLine(command); //send question
                 _transmissionEnabled = false; //disable transmission of next command
                 ComTimer.Start(); //start 1000 ms timer for waiting
                 //if question
@@ -156,21 +156,21 @@ namespace MeteoDome
         }
 
         //timer for waiting of reply from mc
-        private void OnTimedEvent_Com(object sender, ElapsedEventArgs e)
+        private static void OnTimedEvent_Com(object sender, ElapsedEventArgs e)
         {
             ComTimer.Stop();
             _transmissionEnabled = true;
         }
 
         //serial port reader
-        private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        private static void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             ComTimer.Stop(); //stop timer
 
             var indata = "#";
             try
             {
-                indata = _serialPort.ReadLine(); //read answer [1ap=1234]
+                indata = SerialPort.ReadLine(); //read answer [1ap=1234]
                 // Logger.AddLogEntry("get msg "+indata);
             }
             catch (Exception exception)
@@ -234,7 +234,7 @@ namespace MeteoDome
                         InitFlag = int.Parse(indata.Substring(5, 1));
                         break;
                 }
-                domeUpdateDateTime = DateTime.UtcNow;
+                DomeUpdateDateTime = DateTime.UtcNow;
             }
             catch (Exception exception)
             {
@@ -244,7 +244,7 @@ namespace MeteoDome
 
             try
             {
-                _serialPort.ReadExisting(); //cleaning
+                SerialPort.ReadExisting(); //cleaning
             }
             catch
             {

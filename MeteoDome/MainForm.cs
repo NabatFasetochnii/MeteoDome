@@ -17,7 +17,6 @@ namespace MeteoDome
         private const string GoodString = "Weather is good to open dome";
         private const double Tolerance = 1e-6;
         private static readonly string Path = Directory.GetCurrentDirectory();
-        private readonly Logger _logger;
         private static readonly Timer MeteoTimer = new Timer(); //clock timer and status check timer
 
         ////globals for mount
@@ -25,11 +24,9 @@ namespace MeteoDome
         private const string TelescopeId = "ASCOM.SiTechDll.Telescope";
 
         ////globals for dome
-        private readonly DomeSerialDevice _domeSerialDevice = new DomeSerialDevice();
-        private const short DomeTimeoutUpdateAlarm = 3; // in min //TODO .cfg
+        private const short DomeTimeoutUpdateAlarm = 3; // in min
 
         ////globals for database
-        private readonly MeteoDb _meteo;
         private short _checkWeatherForDome = -1;
         private short _counter;
         private BitArray _dome = new BitArray(8);
@@ -45,46 +42,38 @@ namespace MeteoDome
 
             button_Dome_Run.Enabled = !checkBox_AutoDome.Checked;
 
-            _logger = new Logger(logBox);
-            _domeSerialDevice.Logger = _logger;
-            _meteo = new MeteoDb(_logger);
-
             if (!Read_Cfg())
                 if (MessageBox.Show(@"Can't read config", @"OK", MessageBoxButtons.OK) == DialogResult.OK)
                     Environment.Exit(1);
-
-            // if (!_domeSerialDevice.Init())
-            //     if (MessageBox.Show(@"Can't open Dome serial port", @"OK", MessageBoxButtons.OK) == DialogResult.OK)
-            //         Environment.Exit(1);
-
-            if (!_domeSerialDevice.Init())
+            
+            if (!DomeSerialDevice.Init())
             {
                 MessageBox.Show(@"Can't open Dome serial port", @"OK", MessageBoxButtons.OK);
             }
             else
             {
-                groupBox_Dome.Text = $@"Dome (COMPORT {_domeSerialDevice.ComId})";
+                groupBox_Dome.Text = $@"Dome (COMPORT {DomeSerialDevice.ComId})";
             }
+
+            Logger.LogBox = logBox;
 
             //create timer for main loop
             MeteoTimer.Elapsed += TimerGetClock;
             MeteoTimer.Interval = 1000;
             MeteoTimer.Start();
-            _domeSerialDevice.UpDate();
+            DomeSerialDevice.UpDate();
 
             _mount = new Telescope(TelescopeId);
             _mount.Connected = true;
 
-            var socks = new Socks(_logger);
+            var socks = new Socks();
             socks.StartListening();
             timerSet.Enabled = true;
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            // _work = false;
-            _domeSerialDevice.Dispose();
-            // _socks.StopListening();
+            DomeSerialDevice.Dispose();
             MeteoTimer.Close();
             timerSet.Stop();
         }
@@ -92,7 +81,7 @@ namespace MeteoDome
         //one second timer for status and clock
         private void TimerGetClock(object sender, ElapsedEventArgs e)
         {
-            _domeSerialDevice.UpDate();
+            DomeSerialDevice.UpDate();
             if (_counter == 60 || _counter == 0)
             {
                 GetMeteo();
@@ -109,7 +98,7 @@ namespace MeteoDome
             }
                 
             _counter++;
-            if ((DateTime.UtcNow - _domeSerialDevice.domeUpdateDateTime).TotalMinutes > DomeTimeoutUpdateAlarm)
+            if ((DateTime.UtcNow - DomeSerialDevice.DomeUpdateDateTime).TotalMinutes > DomeTimeoutUpdateAlarm)
             {
                 groupBox_Dome.Invoke((MethodInvoker) delegate
                 {
@@ -121,7 +110,7 @@ namespace MeteoDome
             {
                 groupBox_Dome.Invoke((MethodInvoker) delegate
                 {
-                    groupBox_Dome.Text = $@"Dome (COMPORT {_domeSerialDevice.ComId})";
+                    groupBox_Dome.Text = $@"Dome (COMPORT {DomeSerialDevice.ComId})";
                 });
             }
         }
@@ -129,10 +118,10 @@ namespace MeteoDome
 
         private void GetMeteo()
         {
-            var skyIr = _meteo.Get_Sky_IR(); // return [sky_tmp, sky_tmp_std], [-1,-1] - disconnected, [0,-1] - old data
-            var skyVis = _meteo
+            var skyIr = MeteoDb.Get_Sky_IR(); // return [sky_tmp, sky_tmp_std], [-1,-1] - disconnected, [0,-1] - old data
+            var skyVis = MeteoDb
                 .Get_Sky_VIS(); // return [extinction, extinction_std], [-1,-1] - disconnected, [0,-1] - old data
-            var seeing = _meteo
+            var seeing = MeteoDb
                 .Get_Seeing(); // return [seeing, seeing_extinction], [-1,-1] - disconnected, [0,-1] - old data
     
             WeatherDataCollector.SkyTemp = skyIr[0];
@@ -141,7 +130,7 @@ namespace MeteoDome
             WeatherDataCollector.ExtinctionStd = skyVis[1];
             WeatherDataCollector.Seeing = seeing[0];
             WeatherDataCollector.SeeingExtinction = seeing[1];
-            WeatherDataCollector.Wind = _meteo.Get_Wind(); // return wind, -1 - disconnected, 100 - old data
+            WeatherDataCollector.Wind = MeteoDb.Get_Wind(); // return wind, -1 - disconnected, 100 - old data
             WeatherDataCollector.SunZd = MeteoDb.Sun_ZD(); //return Sun zenith distance (degree)
         }
 
@@ -451,12 +440,12 @@ namespace MeteoDome
 
         private void SetDome()
         {
-            var power = _domeSerialDevice.Power;
-            _dome = _domeSerialDevice.Dome;
-            var buttons = _domeSerialDevice.Buttons;
-            var timeoutNorth = _domeSerialDevice.TimeoutNorth;
-            var timeoutSouth = _domeSerialDevice.TimeoutSouth;
-            var initFlag = Convert.ToBoolean(_domeSerialDevice.InitFlag);
+            var power = DomeSerialDevice.Power;
+            _dome = DomeSerialDevice.Dome;
+            var buttons = DomeSerialDevice.Buttons;
+            var timeoutNorth = DomeSerialDevice.TimeoutNorth;
+            var timeoutSouth = DomeSerialDevice.TimeoutSouth;
+            var initFlag = Convert.ToBoolean(DomeSerialDevice.InitFlag);
 
             if (power[5] & power[6])
             {
@@ -815,7 +804,7 @@ namespace MeteoDome
                 {
                     case 2 when !WeatherDataCollector.IsFlat:
                         //obs flat
-                        _logger.AddLogEntry("Flat can start");
+                        Logger.AddLogEntry("Flat can start");
                         WeatherDataCollector.IsFlat = true;
                         return;
                     case 3:
@@ -823,7 +812,7 @@ namespace MeteoDome
                         // night
                         WeatherDataCollector.IsFlat = false;
                         if (WeatherDataCollector.IsObsRunning) return;
-                        _logger.AddLogEntry("Observation can start");
+                        Logger.AddLogEntry("Observation can start");
                         WeatherDataCollector.IsObsRunning = true;
                         return;
                     }
@@ -840,14 +829,11 @@ namespace MeteoDome
             WeatherDataCollector.IsFlat = false;
             close_dome();
             if (!WeatherDataCollector.IsObsRunning) return;
-            _logger.AddLogEntry("Observation stop");
+            Logger.AddLogEntry("Observation stop");
             WeatherDataCollector.IsObsRunning = false;
-            // TODO
-            if (_mount.Connected & _mount.CanPark)
-            {
-                _logger.AddLogEntry("Parking mount");
-                _mount.ParkAsync();
-            }
+            if (_mount is null || !(_mount.Connected & _mount.CanPark)) return;
+            Logger.AddLogEntry("Parking mount");
+            _mount.ParkAsync();
         }
 
         private void open_dome()
@@ -869,59 +855,59 @@ namespace MeteoDome
             }
         }
 
-        private void open_north()
+        private static void open_north()
         {
-            if (_domeSerialDevice.Power[5])
+            if (DomeSerialDevice.Power[5])
             {
-                _logger.AddLogEntry("Opening north");
+                Logger.AddLogEntry("Opening north");
                 DomeSerialDevice.AddTask("1rno");
             }
             else
             {
-                _logger.AddLogEntry("North motor power off");
+                Logger.AddLogEntry("North motor power off");
             }
         }
 
-        private void close_north()
+        private static void close_north()
         {
-            if (_domeSerialDevice.Power[5])
+            if (DomeSerialDevice.Power[5])
             {
-                _logger.AddLogEntry("Closing north");
+                Logger.AddLogEntry("Closing north");
                 DomeSerialDevice.AddTask("1rnc");
             }
             else
             {
-                _logger.AddLogEntry("North motor power off");
+                Logger.AddLogEntry("North motor power off");
             }
         }
 
-        private void open_south()
+        private static void open_south()
         {
-            if (_domeSerialDevice.Power[6])
+            if (DomeSerialDevice.Power[6])
             {
                 DomeSerialDevice.AddTask("1rso");
-                _logger.AddLogEntry("Opening south");
+                Logger.AddLogEntry("Opening south");
             }
             else
             {
-                _logger.AddLogEntry("South motor power off");
+                Logger.AddLogEntry("South motor power off");
             }
         }
 
-        private void close_south()
+        private static void close_south()
         {
-            if (_domeSerialDevice.Power[6])
+            if (DomeSerialDevice.Power[6])
             {
                 DomeSerialDevice.AddTask("1rsc");
-                _logger.AddLogEntry("Closing south");
+                Logger.AddLogEntry("Closing south");
             }
             else
             {
-                _logger.AddLogEntry("South motor power off");
+                Logger.AddLogEntry("South motor power off");
             }
         }
 
-        private bool Read_Cfg()
+        private static bool Read_Cfg()
         {
             try
             {
@@ -934,35 +920,71 @@ namespace MeteoDome
                         switch (substrings[0])
                         {
                             case "Dome_ComID":
-                                _domeSerialDevice.ComId = substrings[1];
+                                DomeSerialDevice.ComId = substrings[1];
                                 break;
-                            //case "Delay":
-                            //    Delay = Convert.ToInt32(substrings[1]);
-                            //    break;
-                            //case "Server":
-                            //    Server = substrings[1];
-                            //    break;
-                            //case "Dbase":
-                            //    Database = substrings[1];
-                            //    break;
-                            //case "Table":
-                            //    Table = substrings[1];
-                            //    break;
-                            //case "Login":
-                            //    Login = substrings[1];
-                            //    break;
-                            //case "Pword":
-                            //    Password = substrings[1];
-                            //    break;
-                            //case "Mirror":
-                            //    Sensors[Convert.ToInt32(substrings[1])] = "Tmir";
-                            //    break;
-                            //case "Cell":
-                            //    Sensors[Convert.ToInt32(substrings[1])] = "Tcell";
-                            //    break;
-                            //case "Air":
-                            //    Sensors[Convert.ToInt32(substrings[1])] = "Tair";
-                            //    break;
+                            case "Dome_Port":
+                                Socks.Port = int.Parse(substrings[1]);
+                                break;
+                            case "Meteo_Server":
+                                MeteoDb.MeteoServer = substrings[1];
+                                break;
+                            case "Meteo_Port":
+                                MeteoDb.Port = substrings[1];
+                                break;
+                            case "Meteo_User":
+                                MeteoDb.UserId = substrings[1];
+                                break;
+                            case "Meteo_Password":
+                                MeteoDb.Password = substrings[1];
+                                break;
+                            case "Meteo_DB":
+                                MeteoDb.Database = substrings[1];
+                                break;
+                            case "Scope_Latitude":
+                                MeteoDb.Latitude = float.Parse(substrings[1]);
+                                break;
+                            case "Scope_Longitude":
+                                MeteoDb.Longitude = float.Parse(substrings[1]);
+                                break;
+                            case "Meteo_MaxWind":
+                                MeteoDb.MaxWind = short.Parse(substrings[1]);
+                                break;
+                            case "Meteo_MinWind":
+                                MeteoDb.MinWind = short.Parse(substrings[1]);
+                                break;
+                            case "Meteo_MinSkyTemp":
+                                MeteoDb.MinSkyTemp = short.Parse(substrings[1]);
+                                break;
+                            case "Meteo_MaxSkyTemp":
+                                MeteoDb.MaxSkyTemp = short.Parse(substrings[1]);
+                                break;
+                            case "Meteo_MaxSkyStd":
+                                MeteoDb.MaxSkyStd = short.Parse(substrings[1]);
+                                break;
+                            case "Meteo_MinSkyStd":
+                                MeteoDb.MinSkyStd = short.Parse(substrings[1]);
+                                break;
+                            case "Meteo_MinExtinction":
+                                MeteoDb.MinExtinction = short.Parse(substrings[1]);
+                                break;
+                            case "Meteo_MinExtinctionStd":
+                                MeteoDb.MinExtinctionStd = short.Parse(substrings[1]);
+                                break;
+                            case "Meteo_MaxExtinction":
+                                MeteoDb.MaxExtinction = short.Parse(substrings[1]);
+                                break;
+                            case "Meteo_MaxExtinctionStd":
+                                MeteoDb.MaxExtinctionStd = short.Parse(substrings[1]);
+                                break;
+                            case "Meteo_SunZdDomeOpen":
+                                MeteoDb.SunZdDomeOpen = short.Parse(substrings[1]);
+                                break;
+                            case "Meteo_SunZdFlat":
+                                MeteoDb.SunZdFlat = short.Parse(substrings[1]);
+                                break;
+                            case "Meteo_SunZdNight":
+                                MeteoDb.SunZdNight = short.Parse(substrings[1]);
+                                break;
                         }
                     }
                 }
@@ -992,7 +1014,7 @@ namespace MeteoDome
                     }
                     case "Stop":
                         DomeSerialDevice.AddTask("1rns");
-                        _logger.AddLogEntry("Stop north");
+                        Logger.AddLogEntry("Stop north");
                         break;
                 }
 
@@ -1011,7 +1033,7 @@ namespace MeteoDome
                 }
                 case "Stop":
                     DomeSerialDevice.AddTask("1rss");
-                    _logger.AddLogEntry("Stop south");
+                    Logger.AddLogEntry("Stop south");
                     break;
             }
         }
@@ -1025,7 +1047,7 @@ namespace MeteoDome
         {
             if (e.KeyChar != (char) Keys.Return) return;
             e.Handled = true;
-            _logger.AddLogEntry("North timeout change to " + numericUpDown_timeout_north.Value);
+            Logger.AddLogEntry("North timeout change to " + numericUpDown_timeout_north.Value);
             DomeSerialDevice.AddTask("1stn=" + numericUpDown_timeout_north.Value);
         }
 
@@ -1033,18 +1055,18 @@ namespace MeteoDome
         {
             if (e.KeyChar != (char) Keys.Return) return;
             e.Handled = true;
-            _logger.AddLogEntry("South timeout change to " + numericUpDown_timeout_south.Value);
+            Logger.AddLogEntry("South timeout change to " + numericUpDown_timeout_south.Value);
             DomeSerialDevice.AddTask("1sts=" + numericUpDown_timeout_south.Value);
         }
 
         private void toolStripMenuItemSaveLogs_Click(object sender, EventArgs e)
         {
-            _logger.SaveLogs();
+            Logger.SaveLogs();
         }
 
         private void toolStripMenuItemClearLogs_Click(object sender, EventArgs e)
         {
-            _logger.ClearLogs();
+            Logger.ClearLogs();
         }
     }
 }

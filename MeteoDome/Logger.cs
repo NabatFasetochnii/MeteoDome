@@ -4,18 +4,13 @@ using System.Windows.Forms;
 
 namespace MeteoDome
 {
-    public class Logger
+    public static class Logger
     {
-        private readonly ListBox _logBox;
+        public static  ListBox LogBox;
 
-        public Logger(ListBox listBox)
+        public static void AddLogEntry(string entry)
         {
-            _logBox = listBox;
-        }
-
-        public void AddLogEntry(string entry)
-        {
-            if (_logBox.Items.Count >= 8192)
+            if (LogBox.Items.Count >= 8192)
             {
                 SaveLogs();
                 ClearLogs();
@@ -23,31 +18,31 @@ namespace MeteoDome
 
             try
             {
-                _logBox.Invoke((MethodInvoker) delegate { _logBox.Items.Insert(0, $"{DateTime.UtcNow:G} {entry}"); });
+                LogBox.Invoke((MethodInvoker) delegate { LogBox.Items.Insert(0, $"{DateTime.UtcNow:G} {entry}"); });
             }
             catch
             {
-                _logBox.Items.Insert(0, $"{DateTime.UtcNow:G} {entry}");
+                LogBox.Items.Insert(0, $"{DateTime.UtcNow:G} {entry}");
             }
         }
 
-        public void ClearLogs()
+        public static void ClearLogs()
         {
-            _logBox.Invoke((MethodInvoker) delegate
+            LogBox.Invoke((MethodInvoker) delegate
             {
-                _logBox.Items.Clear();
-                _logBox.Items.Insert(0, $"{DateTime.UtcNow:G} Logs have been cleaned");
+                LogBox.Items.Clear();
+                LogBox.Items.Insert(0, $"{DateTime.UtcNow:G} Logs have been cleaned");
             });
         }
 
-        public void SaveLogs()
+        public static void SaveLogs()
         {
-            _logBox.Invoke((MethodInvoker) delegate
+            LogBox.Invoke((MethodInvoker) delegate
             {
                 var sw = new StreamWriter($"Logs {DateTime.UtcNow:yyyy-MM-ddTHH-mm-ss}.txt");
-                foreach (string item in _logBox.Items) sw.WriteLine(item);
+                foreach (string item in LogBox.Items) sw.WriteLine(item);
                 sw.Close();
-                _logBox.Items.Insert(0, $"{DateTime.UtcNow:G} Logs have been saved");
+                LogBox.Items.Insert(0, $"{DateTime.UtcNow:G} Logs have been saved");
             });
         }
     }
