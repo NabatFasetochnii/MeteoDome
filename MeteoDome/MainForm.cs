@@ -6,6 +6,8 @@ using System.Threading;
 using System.Timers;
 using System.Windows.Forms;
 using Timer = System.Timers.Timer;
+using ASCOM.Com.DriverAccess;
+using ASCOM.Common;
 
 namespace MeteoDome
 {
@@ -18,9 +20,13 @@ namespace MeteoDome
         private readonly Logger _logger;
         private static readonly Timer MeteoTimer = new Timer(); //clock timer and status check timer
 
+        ////globals for mount
+        private readonly Telescope _mount;
+        private const string TelescopeId = "SiTechDll Telescope"; //TODO park
+
         ////globals for dome
         private readonly DomeSerialDevice _domeSerialDevice = new DomeSerialDevice();
-        private const short DomeTimeoutUpdateAlarm = 3; // in min
+        private const short DomeTimeoutUpdateAlarm = 3; // in min //TODO .cfg
 
         ////globals for database
         private readonly MeteoDb _meteo;
@@ -66,6 +72,9 @@ namespace MeteoDome
             MeteoTimer.Start();
             _domeSerialDevice.UpDate();
 
+            _mount = new Telescope(TelescopeId);
+            _mount.Connected = true;
+
             var socks = new Socks(_logger);
             socks.StartListening();
             timerSet.Enabled = true;
@@ -100,7 +109,7 @@ namespace MeteoDome
             }
                 
             _counter++;
-            if ((DateTime.UtcNow - _domeSerialDevice.domeUpdateDateTime ).TotalMinutes > DomeTimeoutUpdateAlarm)
+            if ((DateTime.UtcNow - _domeSerialDevice.domeUpdateDateTime).TotalMinutes > DomeTimeoutUpdateAlarm)
             {
                 groupBox_Dome.Invoke((MethodInvoker) delegate
                 {
@@ -805,7 +814,6 @@ namespace MeteoDome
                 switch (_checkWeatherForDome)
                 {
                     case 2 when !WeatherDataCollector.IsFlat:
-                        //TODO FLAT
                         //obs flat
                         _logger.AddLogEntry("Flat can start");
                         WeatherDataCollector.IsFlat = true;
@@ -834,7 +842,11 @@ namespace MeteoDome
             if (!WeatherDataCollector.IsObsRunning) return;
             _logger.AddLogEntry("Observation stop");
             WeatherDataCollector.IsObsRunning = false;
-            // Park(); TODO
+            // TODO
+            if (_mount.Connected & _mount.CanPark)
+            {
+                _mount.ParkAsync();
+            }
         }
 
         private void open_dome()
@@ -848,6 +860,7 @@ namespace MeteoDome
 
         private void close_dome()
         {
+
             if ((!_dome[0] & !_dome[4]) | (!_dome[2] & !_dome[6]))
             {
                 close_north();
