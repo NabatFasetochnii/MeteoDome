@@ -22,7 +22,7 @@ namespace MeteoDome
 
         ////globals for mount
         private readonly Telescope _mount;
-        private const string TelescopeId = "SiTechDll Telescope"; //TODO park
+        private const string TelescopeId = "ASCOM.SiTechDll.Telescope";
 
         ////globals for dome
         private readonly DomeSerialDevice _domeSerialDevice = new DomeSerialDevice();
@@ -845,6 +845,7 @@ namespace MeteoDome
             // TODO
             if (_mount.Connected & _mount.CanPark)
             {
+                _logger.AddLogEntry("Parking mount");
                 _mount.ParkAsync();
             }
         }
