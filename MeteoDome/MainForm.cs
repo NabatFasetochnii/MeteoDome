@@ -39,7 +39,7 @@ namespace MeteoDome
         public MainForm()
         {
             InitializeComponent();
-
+            Logger.LogBox = logBox;
             button_Dome_Run.Enabled = !checkBox_AutoDome.Checked;
 
             if (!Read_Cfg())
@@ -54,9 +54,7 @@ namespace MeteoDome
             {
                 groupBox_Dome.Text = $@"Dome (COMPORT {DomeSerialDevice.ComId})";
             }
-
-            Logger.LogBox = logBox;
-
+            
             //create timer for main loop
             MeteoTimer.Elapsed += TimerGetClock;
             MeteoTimer.Interval = 1000;
@@ -965,16 +963,16 @@ namespace MeteoDome
                                 MeteoDb.MinSkyStd = short.Parse(substrings[1]);
                                 break;
                             case "Meteo_MinExtinction":
-                                MeteoDb.MinExtinction = short.Parse(substrings[1]);
+                                MeteoDb.MinExtinction = float.Parse(substrings[1]);
                                 break;
                             case "Meteo_MinExtinctionStd":
-                                MeteoDb.MinExtinctionStd = short.Parse(substrings[1]);
+                                MeteoDb.MinExtinctionStd = float.Parse(substrings[1]);
                                 break;
                             case "Meteo_MaxExtinction":
-                                MeteoDb.MaxExtinction = short.Parse(substrings[1]);
+                                MeteoDb.MaxExtinction = float.Parse(substrings[1]);
                                 break;
                             case "Meteo_MaxExtinctionStd":
-                                MeteoDb.MaxExtinctionStd = short.Parse(substrings[1]);
+                                MeteoDb.MaxExtinctionStd = float.Parse(substrings[1]);
                                 break;
                             case "Meteo_SunZdDomeOpen":
                                 MeteoDb.SunZdDomeOpen = short.Parse(substrings[1]);
@@ -988,7 +986,6 @@ namespace MeteoDome
                         }
                     }
                 }
-
                 return true;
             }
             catch //(Exception ex)
