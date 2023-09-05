@@ -27,10 +27,15 @@ namespace MeteoDome
         public static string UserId;
         public static string Password;
         public static string Database;
-
+        
         ////globals
-        private static readonly string ServicesConnString =
-            $"Server={MeteoServer};Port={Port};User Id={UserId};Password={Password}; Database={Database};";
+        private static string ServicesConnString;
+
+        public static void SetServices()
+        {
+            ServicesConnString =
+                $"Server={MeteoServer};Port={Port};User Id={UserId};Password={Password}; Database={Database};";
+        }
 
         private static double Ut2Jd(DateTime ut)
         {

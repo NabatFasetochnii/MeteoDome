@@ -45,6 +45,7 @@ namespace MeteoDome
             if (!Read_Cfg())
                 if (MessageBox.Show(@"Can't read config", @"OK", MessageBoxButtons.OK) == DialogResult.OK)
                     Environment.Exit(1);
+            MeteoDb.SetServices();
             
             if (!DomeSerialDevice.Init())
             {
