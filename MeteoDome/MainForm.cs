@@ -776,18 +776,17 @@ namespace MeteoDome
                 // }
 
                 //clear
-                if (Math.Abs(WeatherDataCollector.SunZd - MeteoDb.SunZdFlat) < Tolerance)
+                if (Math.Abs(WeatherDataCollector.SunZd - MeteoDb.SunZdFlat) < 0.5f)
                 {
                     _checkWeatherForDome = 2;
                     // dusk
                     return;
                 }
-                if (_isObsCanRun)
-                {
-                    _checkWeatherForDome = 3;
-                    return;
-                    // night
-                }
+
+                if (!_isObsCanRun) return;
+                _checkWeatherForDome = 3;
+                return;
+                // night
             }
 
             // cloudy or too bright
