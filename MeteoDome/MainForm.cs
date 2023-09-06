@@ -909,7 +909,6 @@ namespace MeteoDome
 
         private static bool Read_Cfg()
         {
-            CultureInfo usCulture = new CultureInfo ("en-US");
             try
             {
                 using (var reader = File.OpenText(Path + "\\Robophot.cfg"))
