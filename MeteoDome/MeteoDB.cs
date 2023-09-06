@@ -29,11 +29,11 @@ namespace MeteoDome
         public static string Database;
         
         ////globals
-        private static string ServicesConnString;
+        private static string _servicesConnString;
 
         public static void SetServices()
         {
-            ServicesConnString =
+            _servicesConnString =
                 $"Server={MeteoServer};Port={Port};User Id={UserId};Password={Password}; Database={Database};";
         }
 
@@ -123,7 +123,7 @@ namespace MeteoDome
             double dT = 0;
             var result = new double[] {-1, -1};
 
-            using (var conn = new NpgsqlConnection(ServicesConnString))
+            using (var conn = new NpgsqlConnection(_servicesConnString))
             {
                 try
                 {
@@ -182,7 +182,7 @@ namespace MeteoDome
             double dT = 0;
             var result = new double[] {-1, -1};
 
-            using (var conn = new NpgsqlConnection(ServicesConnString))
+            using (var conn = new NpgsqlConnection(_servicesConnString))
             {
                 try
                 {
@@ -245,7 +245,7 @@ namespace MeteoDome
             double result = -1;
             double a = 0, b = 0;
 
-            using (var conn = new NpgsqlConnection(ServicesConnString))
+            using (var conn = new NpgsqlConnection(_servicesConnString))
             {
                 try
                 {
@@ -300,7 +300,7 @@ namespace MeteoDome
             double dT = 0;
             double[] result = {-1, -1};
 
-            using (var conn = new NpgsqlConnection(ServicesConnString))
+            using (var conn = new NpgsqlConnection(_servicesConnString))
             {
                 try
                 {

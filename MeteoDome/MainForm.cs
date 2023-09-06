@@ -767,30 +767,30 @@ namespace MeteoDome
             if (_isDomeCanOpen & (WeatherDataCollector.SunZd > MeteoDb.SunZdDomeOpen))
             {
                 _checkWeatherForDome = 1;
+                
+                // if (WeatherDataCollector.SunZd < MeteoDb.SunZdFlat)
+                // {
+                //     // too bright
+                //     _checkWeatherForDome = -1;
+                //     return;
+                // }
+
+                //clear
+                if (Math.Abs(WeatherDataCollector.SunZd - MeteoDb.SunZdFlat) < Tolerance)
+                {
+                    _checkWeatherForDome = 2;
+                    // dusk
+                    return;
+                }
                 if (_isObsCanRun)
                 {
-                    if (WeatherDataCollector.SunZd < MeteoDb.SunZdFlat)
-                    {
-                        // cloudy or too bright
-                        _checkWeatherForDome = -1;
-                        return;
-                    }
-
-                    //clear
-                    if (WeatherDataCollector.SunZd < MeteoDb.SunZdNight)
-                    {
-                        _checkWeatherForDome = 2;
-                        // dusk
-                        return;
-                    }
-
                     _checkWeatherForDome = 3;
                     return;
-                    // // night
+                    // night
                 }
             }
 
-            // stop_obs();
+            // cloudy or too bright
             _checkWeatherForDome = 0;
         }
 
@@ -825,11 +825,11 @@ namespace MeteoDome
 
         private void stop_obs()
         {
-            WeatherDataCollector.IsFlat = false;
+            if (!WeatherDataCollector.IsObsRunning & !WeatherDataCollector.IsFlat) return;
             close_dome();
-            if (!WeatherDataCollector.IsObsRunning) return;
-            Logger.AddLogEntry("Observation stop");
+            WeatherDataCollector.IsFlat = false;
             WeatherDataCollector.IsObsRunning = false;
+            Logger.AddLogEntry("Observation stop");
             if (_mount is null || !(_mount.Connected & _mount.CanPark)) return;
             Logger.AddLogEntry("Parking mount");
             _mount.ParkAsync();
