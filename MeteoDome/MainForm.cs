@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Timers;
@@ -921,7 +922,7 @@ namespace MeteoDome
                                 DomeSerialDevice.ComId = substrings[1];
                                 break;
                             case "Dome_Port":
-                                Socks.Port = int.Parse(substrings[1]);
+                                Socks.Port = int.Parse(substrings[1], CultureInfo.InvariantCulture);
                                 break;
                             case "Meteo_Server":
                                 MeteoDb.MeteoServer = substrings[1];
@@ -939,49 +940,49 @@ namespace MeteoDome
                                 MeteoDb.Database = substrings[1];
                                 break;
                             case "Scope_Latitude":
-                                MeteoDb.Latitude = float.Parse(substrings[1]);
+                                MeteoDb.Latitude = float.Parse(substrings[1], CultureInfo.InvariantCulture);
                                 break;
                             case "Scope_Longitude":
-                                MeteoDb.Longitude = float.Parse(substrings[1]);
+                                MeteoDb.Longitude = float.Parse(substrings[1], CultureInfo.InvariantCulture);
                                 break;
                             case "Meteo_MaxWind":
-                                MeteoDb.MaxWind = short.Parse(substrings[1]);
+                                MeteoDb.MaxWind = short.Parse(substrings[1], CultureInfo.InvariantCulture);
                                 break;
                             case "Meteo_MinWind":
-                                MeteoDb.MinWind = short.Parse(substrings[1]);
+                                MeteoDb.MinWind = short.Parse(substrings[1], CultureInfo.InvariantCulture);
                                 break;
                             case "Meteo_MinSkyTemp":
-                                MeteoDb.MinSkyTemp = short.Parse(substrings[1]);
+                                MeteoDb.MinSkyTemp = short.Parse(substrings[1], CultureInfo.InvariantCulture);
                                 break;
                             case "Meteo_MaxSkyTemp":
-                                MeteoDb.MaxSkyTemp = short.Parse(substrings[1]);
+                                MeteoDb.MaxSkyTemp = short.Parse(substrings[1], CultureInfo.InvariantCulture);
                                 break;
                             case "Meteo_MaxSkyStd":
-                                MeteoDb.MaxSkyStd = short.Parse(substrings[1]);
+                                MeteoDb.MaxSkyStd = short.Parse(substrings[1], CultureInfo.InvariantCulture);
                                 break;
                             case "Meteo_MinSkyStd":
-                                MeteoDb.MinSkyStd = short.Parse(substrings[1]);
+                                MeteoDb.MinSkyStd = short.Parse(substrings[1], CultureInfo.InvariantCulture);
                                 break;
                             case "Meteo_MinExtinction":
-                                MeteoDb.MinExtinction = float.Parse(substrings[1]);
+                                MeteoDb.MinExtinction = float.Parse(substrings[1], CultureInfo.InvariantCulture);
                                 break;
                             case "Meteo_MinExtinctionStd":
-                                MeteoDb.MinExtinctionStd = float.Parse(substrings[1]);
+                                MeteoDb.MinExtinctionStd = float.Parse(substrings[1], CultureInfo.InvariantCulture);
                                 break;
                             case "Meteo_MaxExtinction":
-                                MeteoDb.MaxExtinction = float.Parse(substrings[1]);
+                                MeteoDb.MaxExtinction = float.Parse(substrings[1], CultureInfo.InvariantCulture);
                                 break;
                             case "Meteo_MaxExtinctionStd":
-                                MeteoDb.MaxExtinctionStd = float.Parse(substrings[1]);
+                                MeteoDb.MaxExtinctionStd = float.Parse(substrings[1], CultureInfo.InvariantCulture);
                                 break;
                             case "Meteo_SunZdDomeOpen":
-                                MeteoDb.SunZdDomeOpen = short.Parse(substrings[1]);
+                                MeteoDb.SunZdDomeOpen = short.Parse(substrings[1], CultureInfo.InvariantCulture);
                                 break;
                             case "Meteo_SunZdFlat":
-                                MeteoDb.SunZdFlat = short.Parse(substrings[1]);
+                                MeteoDb.SunZdFlat = short.Parse(substrings[1], CultureInfo.InvariantCulture);
                                 break;
                             case "Meteo_SunZdNight":
-                                MeteoDb.SunZdNight = short.Parse(substrings[1]);
+                                MeteoDb.SunZdNight = short.Parse(substrings[1], CultureInfo.InvariantCulture);
                                 break;
                         }
                     }
