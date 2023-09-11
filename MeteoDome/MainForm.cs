@@ -826,7 +826,8 @@ namespace MeteoDome
 
         private void stop_obs()
         {
-            if (!WeatherDataCollector.IsObsRunning & !WeatherDataCollector.IsFlat) return;
+            if (!WeatherDataCollector.IsObsRunning && !WeatherDataCollector.IsFlat &&
+                _dome[4] && _dome[6]) return;
             close_dome();
             WeatherDataCollector.IsFlat = false;
             WeatherDataCollector.IsObsRunning = false;
