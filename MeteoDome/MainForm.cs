@@ -36,6 +36,7 @@ namespace MeteoDome
         private bool _isObsCanRun;
         private bool _isShutterNorthOpen;
         private bool _isShutterSouthOpen;
+        private bool _isDomeOpen;
 
         public MainForm()
         {
@@ -86,16 +87,15 @@ namespace MeteoDome
             {
                 GetMeteo();
                 _counter = 0;
-
-                if (_isFirst)
-                {
-                    Thread.Sleep(2000);
-                    _isFirst = false;
-                }
-
-                CheckWeather();
-                if (checkBox_AutoDome.Checked) Autopilot();
             }
+            if (_isFirst)
+            {
+                Thread.Sleep(2000);
+                _isFirst = false;
+            }
+
+            CheckWeather();
+            if (checkBox_AutoDome.Checked) Autopilot();
                 
             _counter++;
             if ((DateTime.UtcNow - DomeSerialDevice.DomeUpdateDateTime).TotalMinutes > DomeTimeoutUpdateAlarm)
@@ -432,10 +432,7 @@ namespace MeteoDome
         {
             toolStripStatusLabel.Text = $@"UTC: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}";
             SetDome();
-            if (_counter == 1)
-            {
-                SetMeteo();   
-            }
+            SetMeteo();
         }
 
         private void SetDome()
@@ -601,7 +598,7 @@ namespace MeteoDome
                 {
                     label_Shutter_North.Text = @"Shutter north: opened";
                 });
-
+                // _isDomeOpen = true;
                 label_Shutter_North.ForeColor = Color.Green;
             }
             else if (_dome[4])
@@ -618,6 +615,7 @@ namespace MeteoDome
                 {
                     label_Shutter_North.Text = @"Shutter north: half open";
                 });
+                // _isDomeOpen = true;
                 label_Shutter_North.ForeColor = Color.DarkOrange;
             }
             else
@@ -637,6 +635,7 @@ namespace MeteoDome
                 {
                     label_Shutter_South.Text = @"Shutter south: opened";
                 });
+                // _isDomeOpen = true;
                 label_Shutter_South.ForeColor = Color.Green;
             }
             else if (_dome[6])
@@ -653,6 +652,7 @@ namespace MeteoDome
                 {
                     label_Shutter_South.Text = @"Shutter south: half open";
                 });
+                // _isDomeOpen = true;
                 label_Shutter_South.ForeColor = Color.DarkOrange;
             }
             else
@@ -825,13 +825,12 @@ namespace MeteoDome
 
         private void stop_obs()
         {
-            if (!WeatherDataCollector.IsObsRunning && !WeatherDataCollector.IsFlat &&
-                _dome[4] && _dome[6]) return;
-            close_dome();
             WeatherDataCollector.IsFlat = false;
             WeatherDataCollector.IsObsRunning = false;
+            if (!_isDomeOpen) return;
+            close_dome();
             Logger.AddLogEntry("Observation stop");
-            if (_mount is null || !(_mount.Connected & _mount.CanPark)) return;
+            if (_mount is null || !(_mount.Connected & _mount.CanPark) || _mount.AtPark) return;
             Logger.AddLogEntry("Parking mount");
             _mount.ParkAsync();
         }
@@ -847,7 +846,6 @@ namespace MeteoDome
 
         private void close_dome()
         {
-
             if ((!_dome[0] & !_dome[4]) | (!_dome[2] & !_dome[6]))
             {
                 close_north();
@@ -855,10 +853,11 @@ namespace MeteoDome
             }
         }
 
-        private static void open_north()
+        private void open_north()
         {
             if (DomeSerialDevice.Power[5])
             {
+                _isDomeOpen = true;
                 Logger.AddLogEntry("Opening north");
                 DomeSerialDevice.AddTask("1rno");
             }
@@ -868,10 +867,11 @@ namespace MeteoDome
             }
         }
 
-        private static void close_north()
+        private void close_north()
         {
             if (DomeSerialDevice.Power[5])
             {
+                _isDomeOpen = false;
                 Logger.AddLogEntry("Closing north");
                 DomeSerialDevice.AddTask("1rnc");
             }
@@ -881,10 +881,11 @@ namespace MeteoDome
             }
         }
 
-        private static void open_south()
+        private void open_south()
         {
             if (DomeSerialDevice.Power[6])
             {
+                _isDomeOpen = true;
                 DomeSerialDevice.AddTask("1rso");
                 Logger.AddLogEntry("Opening south");
             }
@@ -894,10 +895,11 @@ namespace MeteoDome
             }
         }
 
-        private static void close_south()
+        private void close_south()
         {
             if (DomeSerialDevice.Power[6])
             {
+                _isDomeOpen = false;
                 DomeSerialDevice.AddTask("1rsc");
                 Logger.AddLogEntry("Closing south");
             }
@@ -1012,9 +1014,12 @@ namespace MeteoDome
                         break;
                     }
                     case "Stop":
+                    {
                         DomeSerialDevice.AddTask("1rns");
                         Logger.AddLogEntry("Stop north");
+                        _isDomeOpen = true;
                         break;
+                    }
                 }
 
             if (!checkBoxSouth.Checked) return;
@@ -1031,9 +1036,12 @@ namespace MeteoDome
                     break;
                 }
                 case "Stop":
+                {
                     DomeSerialDevice.AddTask("1rss");
                     Logger.AddLogEntry("Stop south");
+                    _isDomeOpen = true;
                     break;
+                }
             }
         }
 
