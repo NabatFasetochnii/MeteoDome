@@ -36,7 +36,6 @@ namespace MeteoDome
         private bool _isObsCanRun;
         private bool _isShutterNorthOpen;
         private bool _isShutterSouthOpen;
-        private bool _isDomeOpen;
 
         public MainForm()
         {
@@ -825,10 +824,12 @@ namespace MeteoDome
 
         private void stop_obs()
         {
+            close_dome();
+            
+            if (!WeatherDataCollector.IsFlat & !WeatherDataCollector.IsObsRunning) return;
             WeatherDataCollector.IsFlat = false;
             WeatherDataCollector.IsObsRunning = false;
-            if (!_isDomeOpen) return;
-            close_dome();
+            
             Logger.AddLogEntry("Observation stop");
             if (_mount is null || !(_mount.Connected & _mount.CanPark) || _mount.AtPark) return;
             Logger.AddLogEntry("Parking mount");
@@ -857,7 +858,6 @@ namespace MeteoDome
         {
             if (DomeSerialDevice.Power[5])
             {
-                _isDomeOpen = true;
                 Logger.AddLogEntry("Opening north");
                 DomeSerialDevice.AddTask("1rno");
             }
@@ -871,7 +871,6 @@ namespace MeteoDome
         {
             if (DomeSerialDevice.Power[5])
             {
-                _isDomeOpen = false;
                 Logger.AddLogEntry("Closing north");
                 DomeSerialDevice.AddTask("1rnc");
             }
@@ -885,7 +884,6 @@ namespace MeteoDome
         {
             if (DomeSerialDevice.Power[6])
             {
-                _isDomeOpen = true;
                 DomeSerialDevice.AddTask("1rso");
                 Logger.AddLogEntry("Opening south");
             }
@@ -899,7 +897,6 @@ namespace MeteoDome
         {
             if (DomeSerialDevice.Power[6])
             {
-                _isDomeOpen = false;
                 DomeSerialDevice.AddTask("1rsc");
                 Logger.AddLogEntry("Closing south");
             }
@@ -1017,7 +1014,6 @@ namespace MeteoDome
                     {
                         DomeSerialDevice.AddTask("1rns");
                         Logger.AddLogEntry("Stop north");
-                        _isDomeOpen = true;
                         break;
                     }
                 }
@@ -1039,7 +1035,6 @@ namespace MeteoDome
                 {
                     DomeSerialDevice.AddTask("1rss");
                     Logger.AddLogEntry("Stop south");
-                    _isDomeOpen = true;
                     break;
                 }
             }
