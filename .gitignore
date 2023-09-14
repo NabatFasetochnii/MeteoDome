@@ -361,4 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/.idea/.idea.RPCC/.idea
+
+/.idea/.idea.MeteoDome/.idea
+/MeteoDome.sln.DotSettings.user
