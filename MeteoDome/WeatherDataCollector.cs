@@ -33,7 +33,7 @@ namespace MeteoDome
 
         private static string GetFormatDouble(double d)
         {
-            return $"{d:+#.#;-#.#;+0}";
+            return $"{d:+#.##;-#.##;+0}";
         }
     }
 }

@@ -68,46 +68,46 @@ namespace MeteoDome
                                 case "sky":
                                 {
                                     // отправляем ответ
-                                    await _streamWriter.WriteLineAsync(WeatherDataCollector.SkyTemp.ToString("00.0"));
+                                    await _streamWriter.WriteLineAsync(WeatherDataCollector.SkyTemp.ToString("00.00"));
                                     break;
                                 }
                                 case "sky std":
                                 {
                                     await _streamWriter.WriteLineAsync(
-                                        WeatherDataCollector.SkyTempStd.ToString("00.0"));
+                                        WeatherDataCollector.SkyTempStd.ToString("00.00"));
                                     break;
                                 }
                                 case "ext":
                                 {
                                     await _streamWriter.WriteLineAsync(
-                                        WeatherDataCollector.Extinction.ToString("00.0"));
+                                        WeatherDataCollector.Extinction.ToString("00.00"));
                                     break;
                                 }
                                 case "ext std":
                                 {
                                     await _streamWriter.WriteLineAsync(
-                                        WeatherDataCollector.ExtinctionStd.ToString("00.0"));
+                                        WeatherDataCollector.ExtinctionStd.ToString("00.00"));
                                     break;
                                 }
                                 case "see":
                                 {
-                                    await _streamWriter.WriteLineAsync(WeatherDataCollector.Seeing.ToString("00.0"));
+                                    await _streamWriter.WriteLineAsync(WeatherDataCollector.Seeing.ToString("00.00"));
                                     break;
                                 }
                                 case "see ext":
                                 {
                                     await _streamWriter.WriteLineAsync(
-                                        WeatherDataCollector.SeeingExtinction.ToString("00.0"));
+                                        WeatherDataCollector.SeeingExtinction.ToString("00.00"));
                                     break;
                                 }
                                 case "wind":
                                 {
-                                    await _streamWriter.WriteLineAsync(WeatherDataCollector.Wind.ToString("00.0"));
+                                    await _streamWriter.WriteLineAsync(WeatherDataCollector.Wind.ToString("00.00"));
                                     break;
                                 }
                                 case "sun":
                                 {
-                                    await _streamWriter.WriteLineAsync(WeatherDataCollector.SunZd.ToString("00.0"));
+                                    await _streamWriter.WriteLineAsync(WeatherDataCollector.SunZd.ToString("00.00"));
                                     break;
                                 }
                                 case "obs":
