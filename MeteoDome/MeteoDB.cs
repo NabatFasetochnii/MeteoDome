@@ -110,7 +110,7 @@ namespace MeteoDome
         //return Sun zenith distance (degree)
         public static double Sun_ZD()
         {
-            var jd = Ut2Jd(DateTime.Now.ToUniversalTime());
+            var jd = Ut2Jd(DateTime.UtcNow);
             var lsTh = Jd2Lst(jd, Longitude);
             var sun = Get_Sun(jd, lsTh, Latitude);
 
@@ -129,10 +129,10 @@ namespace MeteoDome
                 {
                     conn.Open();
                     result[0] = 0; //connected
-                    var qwery = "SELECT EXTRACT(EPOCH FROM (now() - MAX(timestamp))) FROM cloud_cam;";
+                    var qwery = "SELECT EXTRACT(EPOCH FROM (now() - MAX(timestamp))) FROM cloud_cam;"; 
                     var command = new NpgsqlCommand(qwery, conn);
                     var dr = command.ExecuteReader();
-                    while (dr.Read()) dT = Convert.ToDouble(dr[0]);
+                    while (dr.Read()) dT = dr.GetDouble(0);
                     dr.Close();
 
                     if (dT < 180)
@@ -144,8 +144,8 @@ namespace MeteoDome
                         dr = command.ExecuteReader();
                         while (dr.Read())
                         {
-                            result[0] = Convert.ToDouble(dr[0]);
-                            result[1] = Convert.ToDouble(dr[1]);
+                            result[0] = dr.GetDouble(0);
+                            result[1] = dr.GetDouble(1);
                         }
 
                         dr.Close();
@@ -163,7 +163,6 @@ namespace MeteoDome
 
                         dr.Close();
                     }
-
                     conn.Close();
                 }
                 catch (Exception e)
@@ -193,7 +192,7 @@ namespace MeteoDome
                     var dr = command.ExecuteReader();
                     while (dr.Read()) dT = Convert.ToDouble(dr[0]);
                     dr.Close();
-
+                    // Logger.AddLogEntry($"allsky_mlx dT = {dT}");
                     if (dT < 120)
                     {
                         result[1] = 0; //time ok
@@ -256,7 +255,7 @@ namespace MeteoDome
                     var dr = command.ExecuteReader();
                     while (dr.Read()) dT = Convert.ToDouble(dr[0]);
                     dr.Close();
-
+                    // Logger.AddLogEntry($"boltwood dT = {dT}");
                     if (dT < 120)
                     {
                         result = 100; //time ok
@@ -311,7 +310,7 @@ namespace MeteoDome
                     var dr = command.ExecuteReader();
                     while (dr.Read()) dT = Convert.ToDouble(dr[0]);
                     dr.Close();
-
+                    // Logger.AddLogEntry($"seeing dT = {dT}");
                     if (dT < 120)
                     {
                         result[1] = 0; //time ok

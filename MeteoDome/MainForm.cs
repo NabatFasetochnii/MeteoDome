@@ -783,8 +783,7 @@ namespace MeteoDome
                     return;
                 }
 
-                if (!_isObsCanRun) return;
-                _checkWeatherForDome = 3;
+                if (_isObsCanRun) _checkWeatherForDome = 3;
                 return;
                 // night
             }
@@ -800,6 +799,11 @@ namespace MeteoDome
                 open_dome();
                 switch (_checkWeatherForDome)
                 {
+                    case 1:
+                        if (!WeatherDataCollector.IsObsRunning) return;
+                        Logger.AddLogEntry("Observation can't run");
+                        WeatherDataCollector.IsObsRunning = false;
+                        return;
                     case 2 when !WeatherDataCollector.IsFlat:
                         //obs flat
                         Logger.AddLogEntry("Flat can start");
