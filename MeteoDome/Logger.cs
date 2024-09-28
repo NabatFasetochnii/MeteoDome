@@ -39,7 +39,10 @@ namespace MeteoDome
         {
             LogBox.Invoke((MethodInvoker) delegate
             {
-                var sw = new StreamWriter($"Logs {DateTime.UtcNow:yyyy-MM-ddTHH-mm-ss}.txt");
+                var logsDir = $"D:\\LOGS\\RPCC_LOGS";
+                if (!Directory.Exists(logsDir)) Directory.CreateDirectory(logsDir);
+                var logsFileName = $"Logs {DateTime.UtcNow:yyyy-MM-ddTHH-mm-ss}.txt";
+                var sw = new StreamWriter($"{logsDir}\\{logsFileName}");
                 foreach (string item in LogBox.Items) sw.WriteLine(item);
                 sw.Close();
                 LogBox.Items.Insert(0, $"{DateTime.UtcNow:G} Logs have been saved");
