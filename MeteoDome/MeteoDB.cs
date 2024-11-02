@@ -271,14 +271,21 @@ namespace MeteoDome
 
                         dr.Close();
 
-                        // WARNING: Sensitive to decimal separator --- must be '.'
-                        qwery = "SELECT AVG(wind), STDDEV_SAMP(wind) FROM boltwood WHERE (wind) >= " +
-                                (a - 2 * b) + " AND (wind) <= " + (a + 2 * b) +
-                                " AND timestamp > now() - '10 minutes'::interval;";
-                        command = new NpgsqlCommand(qwery, conn);
-                        dr = command.ExecuteReader();
-                        while (dr.Read()) result = Convert.ToDouble(dr[0]);
-                        dr.Close();
+                        if (a < 0)
+                        {
+                            Logger.AddLogEntry("DB WARNING: WIND < 0");
+                        }
+                        else
+                        {
+                            // WARNING: Sensitive to decimal separator --- must be '.'
+                            qwery = "SELECT AVG(wind), STDDEV_SAMP(wind) FROM boltwood WHERE (wind) >= " +
+                                    (a - 2 * b) + " AND (wind) <= " + (a + 2 * b) +
+                                    " AND timestamp > now() - '10 minutes'::interval;";
+                            command = new NpgsqlCommand(qwery, conn);
+                            dr = command.ExecuteReader();
+                            while (dr.Read()) result = Convert.ToDouble(dr[0]);
+                            dr.Close();
+                        }
                     }
 
                     conn.Close();
