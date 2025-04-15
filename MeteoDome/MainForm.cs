@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using Timer = System.Timers.Timer;
 using ASCOM.Com.DriverAccess;
 using ASCOM.Common;
+using Newtonsoft.Json.Linq;
 
 namespace MeteoDome
 {
@@ -448,6 +449,7 @@ namespace MeteoDome
                 void Action()
                 {
                     label_Dome_Power.Text = @"Power: on";
+                    
                 }
 
                 if (InvokeRequired)
@@ -455,6 +457,14 @@ namespace MeteoDome
                 else
                     Action();
                 label_Dome_Power.ForeColor = Color.Green;
+                StatusUpdater.UpdateNestedField(
+                    new[] { "dome", "south_shutter", "motor_power" },
+                    JToken.FromObject(true)
+                );
+                StatusUpdater.UpdateNestedField(
+                    new[] { "dome", "north_shutter", "motor_power" },
+                    JToken.FromObject(true)
+                );
                 // msg = "Оба мотора запитаны";
             }
             else if (power[5])
@@ -462,6 +472,7 @@ namespace MeteoDome
                 void Action()
                 {
                     label_Dome_Power.Text = @"Power: only north";
+                    
                 }
 
                 if (InvokeRequired)
@@ -469,6 +480,14 @@ namespace MeteoDome
                 else
                     Action();
                 label_Dome_Power.ForeColor = Color.DarkOrange;
+                StatusUpdater.UpdateNestedField(
+                    new[] { "dome", "north_shutter", "motor_power" },
+                    JToken.FromObject(true)
+                );
+                StatusUpdater.UpdateNestedField(
+                    new[] { "dome", "south_shutter", "motor_power" },
+                    JToken.FromObject(false)
+                );
                 // msg = "Запитан только северный мотор";
             }
             else if (power[6])
@@ -476,6 +495,7 @@ namespace MeteoDome
                 void Action()
                 {
                     label_Dome_Power.Text = @"Power: only south";
+                    
                 }
 
                 if (InvokeRequired)
@@ -483,6 +503,14 @@ namespace MeteoDome
                 else
                     Action();
                 label_Dome_Power.ForeColor = Color.DarkOrange;
+                StatusUpdater.UpdateNestedField(
+                    new[] { "dome", "south_shutter", "motor_power" },
+                    JToken.FromObject(true)
+                );
+                StatusUpdater.UpdateNestedField(
+                    new[] { "dome", "north_shutter", "motor_power" },
+                    JToken.FromObject(false)
+                );
                 // msg = "Запитан только южный мотор";
             }
             else
@@ -490,6 +518,7 @@ namespace MeteoDome
                 void Action()
                 {
                     label_Dome_Power.Text = @"Power: off";
+                    
                 }
 
                 if (InvokeRequired)
@@ -497,6 +526,14 @@ namespace MeteoDome
                 else
                     Action();
                 label_Dome_Power.ForeColor = Color.Red;
+                StatusUpdater.UpdateNestedField(
+                    new[] { "dome", "north_shutter", "motor_power" },
+                    JToken.FromObject(false)
+                );
+                StatusUpdater.UpdateNestedField(
+                    new[] { "dome", "south_shutter", "motor_power" },
+                    JToken.FromObject(false)
+                );
                 // msg = "Оба мотора без питания";
             }
 
@@ -505,6 +542,7 @@ namespace MeteoDome
                 void Action()
                 {
                     label_Motor_North.Text = @"Motor north: closing";
+                    
                 }
 
                 if (InvokeRequired)
@@ -512,6 +550,11 @@ namespace MeteoDome
                 else
                     Action();
                 label_Motor_North.ForeColor = Color.Green;
+                StatusUpdater.UpdateNestedField(
+                    new[] { "dome", "north_shutter", "motor_state" },
+                    JToken.FromObject("closing")
+                );
+                
                 // msg = "Северный мотор закрывает крышу";
             }
             else if (_dome[1])
@@ -519,6 +562,7 @@ namespace MeteoDome
                 void Action()
                 {
                     label_Motor_North.Text = @"Motor north: opening";
+                    
                 }
 
                 if (InvokeRequired)
@@ -526,6 +570,10 @@ namespace MeteoDome
                 else
                     Action();
                 label_Motor_North.ForeColor = Color.Green;
+                StatusUpdater.UpdateNestedField(
+                    new[] { "dome", "north_shutter", "motor_state" },
+                    JToken.FromObject("opening")
+                );
                 // msg = "Северный мотор открывает крышу";
             }
 
@@ -534,6 +582,7 @@ namespace MeteoDome
                 void Action()
                 {
                     label_Motor_South.Text = @"Motor south: closing";
+                    
                 }
 
                 if (InvokeRequired)
@@ -541,6 +590,10 @@ namespace MeteoDome
                 else
                     Action();
                 label_Motor_South.ForeColor = Color.Green;
+                StatusUpdater.UpdateNestedField(
+                    new[] { "dome", "south_shutter", "motor_state" },
+                    JToken.FromObject("closing")
+                );
                 // msg = "Южный мотор закрывает крышу";
             }
             else if (_dome[3])
@@ -555,6 +608,11 @@ namespace MeteoDome
                 else
                     Action();
                 label_Motor_South.ForeColor = Color.Green;
+                StatusUpdater.UpdateNestedField(
+                    new[] { "dome", "south_shutter", "motor_state" },
+                    JToken.FromObject("opening")
+                );
+                
                 // msg = "Южный мотор открывает крышу";
             }
 
@@ -564,6 +622,7 @@ namespace MeteoDome
                 void Action()
                 {
                     label_Motor_North.Text = @"Motor north: stopped";
+                    
                 }
 
                 if (InvokeRequired)
@@ -572,6 +631,10 @@ namespace MeteoDome
                     Action();
                 label_Motor_North.ForeColor = Color.Red;
                 Action();
+                StatusUpdater.UpdateNestedField(
+                    new[] { "dome", "north_shutter", "motor_state" },
+                    JToken.FromObject("stopped")
+                );
             }
 
             var sMotorDown = !(_dome[2] | _dome[3]);
@@ -580,7 +643,9 @@ namespace MeteoDome
                 void Action()
                 {
                     label_Motor_South.Text = @"Motor south: stopped";
+                    
                 }
+                
 
                 if (InvokeRequired)
                     Invoke((Action) Action);
@@ -589,6 +654,11 @@ namespace MeteoDome
                 label_Motor_South.ForeColor = Color.Red;
 
                 Action();
+                StatusUpdater.UpdateNestedField(
+                     new[] { "dome", "south_shutter", "motor_state" },
+                     JToken.FromObject("stopped")
+                );
+                
             }
 
             if (_dome[5])
@@ -596,7 +666,12 @@ namespace MeteoDome
                 label_Shutter_North.Invoke((MethodInvoker) delegate
                 {
                     label_Shutter_North.Text = @"Shutter north: opened";
+                    
                 });
+                StatusUpdater.UpdateNestedField(
+                                           new[] { "dome", "north_shutter", "position" },
+                                           JToken.FromObject("opened")
+                                       );
                 // _isDomeOpen = true;
                 label_Shutter_North.ForeColor = Color.Green;
             }
@@ -605,7 +680,12 @@ namespace MeteoDome
                 label_Shutter_North.Invoke((MethodInvoker) delegate
                 {
                     label_Shutter_North.Text = @"Shutter north: closed";
+                    
                 });
+                StatusUpdater.UpdateNestedField(
+                                           new[] { "dome", "north_shutter", "position" },
+                                           JToken.FromObject("closed")
+                                       );
                 label_Shutter_North.ForeColor = Color.Red;
             }
             else if (nMotorDown)
@@ -613,7 +693,12 @@ namespace MeteoDome
                 label_Shutter_North.Invoke((MethodInvoker) delegate
                 {
                     label_Shutter_North.Text = @"Shutter north: half open";
+                    
                 });
+                StatusUpdater.UpdateNestedField(
+                                           new[] { "dome", "north_shutter", "position" },
+                                           JToken.FromObject("intermediate")
+                                       );
                 // _isDomeOpen = true;
                 label_Shutter_North.ForeColor = Color.DarkOrange;
             }
@@ -622,7 +707,12 @@ namespace MeteoDome
                 label_Shutter_North.Invoke((MethodInvoker) delegate
                 {
                     label_Shutter_North.Text = @"Shutter north: running";
+                    
                 });
+                StatusUpdater.UpdateNestedField(
+                                           new[] { "dome", "north_shutter", "position" },
+                                           JToken.FromObject("intermediate")
+                                       );
                 label_Shutter_North.ForeColor = Color.DarkOrange;
             }
 
@@ -633,7 +723,12 @@ namespace MeteoDome
                 label_Shutter_South.Invoke((MethodInvoker) delegate
                 {
                     label_Shutter_South.Text = @"Shutter south: opened";
+                    
                 });
+                StatusUpdater.UpdateNestedField(
+                                           new[] { "dome", "south_shutter", "position" },
+                                           JToken.FromObject("opened")
+                                       );
                 // _isDomeOpen = true;
                 label_Shutter_South.ForeColor = Color.Green;
             }
@@ -643,6 +738,10 @@ namespace MeteoDome
                 {
                     label_Shutter_South.Text = @"Shutter south: closed";
                 });
+                StatusUpdater.UpdateNestedField(
+                   new[] { "dome", "south_shutter", "position" },
+                   JToken.FromObject("closed")
+                );
                 label_Shutter_South.ForeColor = Color.Red;
             }
             else if (sMotorDown)
@@ -651,6 +750,11 @@ namespace MeteoDome
                 {
                     label_Shutter_South.Text = @"Shutter south: half open";
                 });
+                StatusUpdater.UpdateNestedField(
+                    new[] { "dome", "south_shutter", "position" },
+                    JToken.FromObject("intermediate")
+                );
+                
                 // _isDomeOpen = true;
                 label_Shutter_South.ForeColor = Color.DarkOrange;
             }
@@ -659,7 +763,13 @@ namespace MeteoDome
                 label_Shutter_South.Invoke((MethodInvoker) delegate
                 {
                     label_Shutter_South.Text = @"Shutter south: running";
+                    
                 });
+                StatusUpdater.UpdateNestedField(
+                    new[] { "dome", "south_shutter", "position" },
+                    JToken.FromObject("intermediate")
+                );
+                
                 label_Shutter_South.ForeColor = Color.DarkOrange;
             }
 
@@ -758,7 +868,8 @@ namespace MeteoDome
             {
                 if ((WeatherDataCollector.Extinction > 0) & (WeatherDataCollector.ExtinctionStd >= 0))
                     _isObsCanRun = MeteoDb.Get_Weather_Obs(_isObsCanRun, WeatherDataCollector.Extinction, WeatherDataCollector.ExtinctionStd);
-                if ((WeatherDataCollector.SkyTemp < -1) & (WeatherDataCollector.SkyTempStd >= 0) & (-1 < WeatherDataCollector.Wind) & (WeatherDataCollector.Wind < 100))
+                if ((WeatherDataCollector.SkyTemp < -1) & (WeatherDataCollector.SkyTempStd >= 0))
+                                                        // & (-1 < WeatherDataCollector.Wind) & (WeatherDataCollector.Wind < 100))
                     _isDomeCanOpen =
                         MeteoDb.Get_Weather_Dome(_isShutterNorthOpen & _isShutterSouthOpen,
                             WeatherDataCollector.SkyTemp, WeatherDataCollector.SkyTempStd, WeatherDataCollector.Wind);

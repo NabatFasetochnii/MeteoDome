@@ -351,13 +351,13 @@ namespace MeteoDome
             switch (dome)
             {
                 //if dome closed
-                case false when wind > MinWind:
+                // case false when wind > MinWind:
                 case false when skyTemp > MinSkyTemp:
                 case false when skyStd > MinSkyStd:
                     return false;
                 case false: return true;
                 //if dome opened
-                case true when wind > MaxWind:
+                // case true when wind > MaxWind:
                 case true when skyTemp > MaxSkyTemp:
                 case true when skyStd > MaxSkyStd:
                     return false;
