@@ -42,6 +42,7 @@
             this.label_SkyTempSTD = new System.Windows.Forms.Label();
             this.label_SkyTemp = new System.Windows.Forms.Label();
             this.groupBox_Dome = new System.Windows.Forms.GroupBox();
+            this.checkBoxExt = new System.Windows.Forms.CheckBox();
             this.checkBox_initflag = new System.Windows.Forms.CheckBox();
             this.numericUpDown_timeout_south = new System.Windows.Forms.NumericUpDown();
             this.numericUpDown_timeout_north = new System.Windows.Forms.NumericUpDown();
@@ -208,6 +209,7 @@
             // 
             // groupBox_Dome
             // 
+            this.groupBox_Dome.Controls.Add(this.checkBoxExt);
             this.groupBox_Dome.Controls.Add(this.checkBox_initflag);
             this.groupBox_Dome.Controls.Add(this.numericUpDown_timeout_south);
             this.groupBox_Dome.Controls.Add(this.numericUpDown_timeout_north);
@@ -234,6 +236,19 @@
             this.groupBox_Dome.TabIndex = 1;
             this.groupBox_Dome.TabStop = false;
             this.groupBox_Dome.Text = "Dome";
+            // 
+            // checkBoxExt
+            // 
+            this.checkBoxExt.AutoSize = true;
+            this.checkBoxExt.Checked = true;
+            this.checkBoxExt.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxExt.Location = new System.Drawing.Point(191, 122);
+            this.checkBoxExt.Name = "checkBoxExt";
+            this.checkBoxExt.Size = new System.Drawing.Size(114, 21);
+            this.checkBoxExt.TabIndex = 22;
+            this.checkBoxExt.Text = "Chk extinction";
+            this.checkBoxExt.UseVisualStyleBackColor = true;
+            this.checkBoxExt.CheckedChanged += new System.EventHandler(this.checkBoxExt_CheckedChanged_1);
             // 
             // checkBox_initflag
             // 
@@ -495,6 +510,8 @@
             this.ResumeLayout(false);
             this.PerformLayout();
         }
+
+        private System.Windows.Forms.CheckBox checkBoxExt;
 
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel;
 

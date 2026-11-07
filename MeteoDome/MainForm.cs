@@ -38,6 +38,8 @@ namespace MeteoDome
         private bool _isShutterNorthOpen;
         private bool _isShutterSouthOpen;
 
+        private bool _checkExt;
+        
         public MainForm()
         {
             InitializeComponent();
@@ -70,6 +72,8 @@ namespace MeteoDome
             var socks = new Socks();
             socks.StartListening();
             timerSet.Enabled = true;
+
+            _checkExt = checkBoxExt.Checked;
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -866,8 +870,17 @@ namespace MeteoDome
         {
             if (_counter == 0 || _counter == 60)
             {
-                if ((WeatherDataCollector.Extinction > 0) & (WeatherDataCollector.ExtinctionStd >= 0))
-                    _isObsCanRun = MeteoDb.Get_Weather_Obs(_isObsCanRun, WeatherDataCollector.Extinction, WeatherDataCollector.ExtinctionStd);
+                if (_checkExt)
+                {
+                    if ((WeatherDataCollector.Extinction > 0) & (WeatherDataCollector.ExtinctionStd >= 0))
+                        _isObsCanRun = MeteoDb.Get_Weather_Obs(_isObsCanRun, 
+                            WeatherDataCollector.Extinction, WeatherDataCollector.ExtinctionStd);
+                }
+                else
+                {
+                    _isObsCanRun = true;
+                }
+
                 if ((WeatherDataCollector.SkyTemp < -1) & (WeatherDataCollector.SkyTempStd >= 0))
                                                         // & (-1 < WeatherDataCollector.Wind) & (WeatherDataCollector.Wind < 100))
                     _isDomeCanOpen =
@@ -1184,6 +1197,11 @@ namespace MeteoDome
         private void toolStripMenuItemClearLogs_Click(object sender, EventArgs e)
         {
             Logger.ClearLogs();
+        }
+
+        private void checkBoxExt_CheckedChanged_1(object sender, EventArgs e)
+        {
+            _checkExt = !_checkExt;
         }
     }
 }
